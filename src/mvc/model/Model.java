@@ -67,6 +67,37 @@ public class Model extends Observable {
         pl.skip(Skip.NEXT);
     }
 
+    public synchronized boolean play(){
+        try {
+            if(!this.isPlaying()) {
+                if (stop) {
+                    modelThreader.go();
+                    player.play();
+                    return true;
+                } else if (pause) {
+                    this.pause();
+                    return this.pause;
+                }
+                else{
+                    modelThreader.go();
+                    player.play();
+                    return true;
+                }
+            }
+            else if(this.isPlaying()){
+                this.pause();
+                return this.pause;
+            }
+//            this.pause();
+        }
+        catch (NullPointerException e){
+            System.out.println("==================================");
+            System.out.println("===== PLAYER NOT INITIALIZED =====");
+            System.out.println("==================================");
+        }
+        return false;
+    }
+
     public void play(String path){
         File temp = new File(path);
         if(!temp.exists()){
@@ -94,18 +125,20 @@ public class Model extends Observable {
             if(plistManager.isCurrentSong(song)){
                 if(!this.isPlaying()){
                     // if song is already loaded and NOT playing
-                    System.out.println("SONG" + song.getTitle() + " IS ALREADY PLAYING");
-                    this.play();
+                    System.out.println("SONG" + song.getTitle() + " IS NOW PLAYING");
+                    modelThreader.go();
                     return;
                 }
-                else if(plistManager.isInCurrentPlaylist(song)){
-                    this.playSong(plistManager.getCurrentSong());
+                else{
+//                    this.playSong(plistManager.getCurrentSong());
+                    System.out.println("SONG" + song.getTitle() + " IS ALREADY PLAYING");
                     return;
                 }
             }
             else if(plistManager.isInCurrentPlaylist(song)){
-                this.load(song);
-                this.play();
+                plistManager.getCurrentPlaylist().setCurrentSong(song);
+                this.load(plistManager.getCurrentSong());
+                this.modelThreader.go();
                 return;
             }
             else{
@@ -116,44 +149,15 @@ public class Model extends Observable {
         catch (Exception e){
             // DO NOTHING
         }
-
-        if(plistManager.getCurrentPlaylist().isInPlaylist(song)) {
-            this.playSong(plistManager.getCurrentSong());
-            return;
-        }
-        else if(plistManager.isInCurrentPlaylist(song)){
-            this.playSong(plistManager.getCurrentSong());
-            return;
-        }
-    }
-
-    public boolean play(){
-        try {
-            if(!this.isPlaying()) {
-                if (stop) {
-                    modelThreader.play();
-                    return true;
-                } else if (pause) {
-                    this.pause();
-                    return this.pause;
-                }
-                else{
-                    modelThreader.play();
-                    return true;
-                }
-            }
-            else if(this.isPlaying()){
-                this.pause();
-                return this.pause;
-            }
-//            this.pause();
-        }
-        catch (NullPointerException e){
-            System.out.println("==================================");
-            System.out.println("===== PLAYER NOT INITIALIZED =====");
-            System.out.println("==================================");
-        }
-        return false;
+//
+//        if(plistManager.getCurrentPlaylist().isInPlaylist(song)) {
+//            this.playSong(plistManager.getCurrentSong());
+//            return;
+//        }
+//        else if(plistManager.isInCurrentPlaylist(song)){
+//            this.playSong(plistManager.getCurrentSong());
+//            return;
+//        }
     }
 
     public synchronized void pause(){
@@ -522,15 +526,8 @@ public class Model extends Observable {
             this.notify();
         }
 
-        private synchronized void play(){
-            go();
-            player.play();
-        }
-
         private synchronized void reset(){
-            synchronized (modelThreader) {
-            }
-                pause = stop = skip = false;
+            pause = stop = skip = false;
         }
 
         private void printCurrent(){

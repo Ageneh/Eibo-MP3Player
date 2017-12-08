@@ -55,7 +55,6 @@ public class Controller extends Observable {
         this.currentSongLength = new SimpleStringProperty(this.setTimeFormat(0));
         this.currentSongPosition = new SimpleStringProperty(this.setTimeFormat(0));
         this.playlistCount = new SimpleIntegerProperty(0);
-        System.out.println(model);
         this.plistPath = new SimpleStringProperty(model.getPlistPath());
 
         this.currentSongs.set(this.model.getCurrentSongsObservable());
@@ -152,9 +151,10 @@ public class Controller extends Observable {
 
     private void setAllPlaylists(){
         this.allPlaylists = FXCollections.observableArrayList(this.model.getPlaylistsObservable());
-        for(int i = 0; i > allPlaylists.size(); i++){
-            System.out.println(i+1 + ".) " + allPlaylists.get(i).getTitle());
-        }
+
+//        for(int i = 0; i > allPlaylists.size(); i++){
+//            System.out.println(i+1 + ".) " + allPlaylists.get(i).getTitle());
+//        }
     }
 
     private String setTimeFormat(long milliseconds){

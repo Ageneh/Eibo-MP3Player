@@ -103,8 +103,8 @@ public class StartupView extends Application implements Observer {
             StackPane sidesNull = new StackPane();
             sidesNull.setPrefHeight(0);
             sidesNull.setPrefWidth(0);
-            this.root.setRight(sidesNull);
-            this.root.getRight().setStyle("-fx-background-color: red");
+            this.root.setRight(null);
+            this.root.setTop(null);
 
             ////// LEFT CONTROLS
             this.setUpLeftPanel();
@@ -462,7 +462,7 @@ public class StartupView extends Application implements Observer {
         AnchorPane cover = new AnchorPane();
 
         this.currentCoverImg = new PlaylistSongCover();
-        this.currentCoverImg.setImage(new Image("assets/covers/default-release-cd.png"));
+        this.currentCoverImg.setImage(new Image("/mvc/model/playlist/covers/default-release-cd.png"));
         System.out.println("==== " + this.currentCoverImg.getBoundsInParent().getWidth());
         System.out.println(this.currentCoverImg.getBoundsInParent().getHeight());
         this.currentCoverImg.setPreserveRatio(true);

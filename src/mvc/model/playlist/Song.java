@@ -103,12 +103,15 @@ public class Song extends SongAsset {
     /////////////////////// SETTERS
 
     private void setAlbumCover(){
-        this.coverImg = mp3File.getId3v2Tag().getAlbumImage();
 
-        if(this.coverImg == null || this.coverImg != null && this.coverImg.length < 1){
+        if(mp3File.getId3v2Tag().getAlbumImage() != null){
+            this.coverImg = mp3File.getId3v2Tag().getAlbumImage();
+        }
+        else /*if(this.coverImg == null || this.coverImg != null && this.coverImg.length < 1)*/{
             this.setCoverImage(
-                    super.getStdSongCover()
+                    super.getSongCover()
             );
+            this.coverImg = this.mp3File.getId3v2Tag().getAlbumImage();
         }
     }
 
@@ -119,6 +122,7 @@ public class Song extends SongAsset {
     }
 
     public void setCoverImage(byte[] image){
+//        this.mp3File.getId3v2Tag().setAlbumImage(image, "IMAGE");
         this.mp3File.getId3v2Tag().setAlbumImage(image, "IMAGE");
     }
 

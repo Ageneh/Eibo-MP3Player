@@ -125,20 +125,20 @@ public class Playlist {
      * playing {@code false} will be returned.</br>
      */
     public boolean isInPlaylist(Song songToPlay){
-        if(this.isCurrentSong(songToPlay)){
+        if(!this.songs.contains(songToPlay)){
             return false;
         }
         else{
             System.out.printf("CONTAINS------------------>>>>>>>>>>><");
-            this.setCurrentSong(
-                    this.songs.indexOf(songToPlay)
-            );
+//            this.setCurrentSong(
+//                    this.songs.indexOf(songToPlay)
+//            );
         }
         return true;
     }
 
     public boolean isCurrentSong(Song song){
-        if(this.songs.contains(song)){
+        if(this.songs.get(this.currentSong).equals(song)){
             return true;
         }
         else{
@@ -275,6 +275,12 @@ public class Playlist {
         }
         else{
             this.currentSong = 0;
+        }
+    }
+
+    public void setCurrentSong(Song song){
+        if(this.isInPlaylist(song) && !this.isCurrentSong(song)){
+            this.currentSong = this.songs.indexOf(song);
         }
     }
 
