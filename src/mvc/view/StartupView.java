@@ -71,7 +71,7 @@ public class StartupView extends Application implements Observer {
 //        this.controller = new Controller();
 
         playlistCount = new Label("0");
-        stageTitle = stageTitle;
+        this.stageTitle = stageTitle;
     }
 
 
@@ -462,7 +462,7 @@ public class StartupView extends Application implements Observer {
         AnchorPane cover = new AnchorPane();
 
         this.currentCoverImg = new PlaylistSongCover();
-        this.currentCoverImg.setImage(new Image("mvc/view/view_assests/default-release-cd.png"));
+        this.currentCoverImg.setImage(new Image("assets/covers/default-release-cd.png"));
         System.out.println("==== " + this.currentCoverImg.getBoundsInParent().getWidth());
         System.out.println(this.currentCoverImg.getBoundsInParent().getHeight());
         this.currentCoverImg.setPreserveRatio(true);

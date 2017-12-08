@@ -22,31 +22,31 @@
 }
 
 #play{
-    -fx-background-image: url("/simple/play.png");
+    -fx-background-image: url("/icons/play.png");
 }
 
 #pause{
-    -fx-background-image: url("/simple/pause.png");
+    -fx-background-image: url("/icons/pause.png");
 }
 
 #next{
-    -fx-background-image: url("/simple/next.png");
+    -fx-background-image: url("/icons/next.png");
 }
 
 #prev{
-    -fx-background-image: url("/simple/prev.png");
+    -fx-background-image: url("/icons/prev.png");
 }
 
 #stop{
-    -fx-background-image: url("/simple/stop.png");
+    -fx-background-image: url("/icons/stop.png");
 }
 
 #mute{
-    -fx-background-image: url("/simple/unmute.png");
+    -fx-background-image: url("/icons/unmute.png");
 }
 
 #newPlaylist{
-    -fx-background-image: url("/simple/playlist.png");
+    -fx-background-image: url("/icons/playlist.png");
 }
 
 #leftPanelHeaderLabel{
