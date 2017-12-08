@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.shape.Box?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="mvc.view.misc.Control"
+            prefHeight="400.0" prefWidth="600.0"
+            style="-fx-background-color: white">
+
+    <VBox>
+        <HBox id="midContent">
+            <ListView id="playlist"></ListView>
+            <ImageView id="coverView"></ImageView>
+        </HBox>
+    </VBox>
+    <VBox fillWidth="true" id="bottomControls" AnchorPane.bottomAnchor="0">
+        <HBox>
+            <ImageView id="image"></ImageView>
+            <Button text="prev" id="controlBtn" style="-fx-background-image: url('jk/simple/prev.png')"></Button>
+            <Button text="play" id="controlBtn"
+                    style="-fx-background-image: url('jk/simple/play.png')"></Button>
+            <Button text="stop" id="controlBtn" style="-fx-background-image: url('jk/simple/stop.png')"></Button>
+            <Button text="next" id="controlBtn" style="-fx-background-image: url('jk/simple/next.png')"></Button>
+            <Button text="mute" id="controlBtn" style="-fx-background-image: url('jk/simple/unmute.png')"></Button>
+            <Slider id="volSlider" prefWidth="100"></Slider>
+        </HBox>
+    </VBox>
+
+</AnchorPane>

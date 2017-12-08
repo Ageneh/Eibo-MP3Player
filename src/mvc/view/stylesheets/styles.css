@@ -1,0 +1,83 @@
+.cell{
+    -fx-font-family: "SF Pro Display Regular";
+    -fx-text-fill: dimgray;
+    -fx-font-weight: lighter;
+    -fx-font-size: 12pt;
+}
+
+#controlBtnPane{
+    -fx-padding: 0 30pt;
+    -fx-background-color: #dddddd;
+}
+
+#play, #pause, #stop, #next, #prev, #mute{
+    -fx-text-fill: transparent;
+    -fx-background-color: transparent;
+    -fx-padding: 5pt 10pt 6pt 10pt;
+    -fx-label-padding: 5pt;
+    -fx-background-size: 75% auto;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center center;
+    -fx-cursor: hand;
+}
+
+#play{
+    -fx-background-image: url("/simple/play.png");
+}
+
+#pause{
+    -fx-background-image: url("/simple/pause.png");
+}
+
+#next{
+    -fx-background-image: url("/simple/next.png");
+}
+
+#prev{
+    -fx-background-image: url("/simple/prev.png");
+}
+
+#stop{
+    -fx-background-image: url("/simple/stop.png");
+}
+
+#mute{
+    -fx-background-image: url("/simple/unmute.png");
+}
+
+#newPlaylist{
+    -fx-background-image: url("/simple/playlist.png");
+}
+
+#leftPanelHeaderLabel{
+    -fx-text-fill: black;
+    -fx-font-size: 16pt;
+    -fx-font-weight: 700;
+    -webkit-fx-font: "SF Pro Display Medium";
+    -moz-fx-font: "SF Pro Display Medium";
+    -ms-fx-font: "SF Pro Display Medium";
+    -o-fx-font: "SF Pro Display Medium";
+    -khtml-fx-font: "SF Pro Display Medium";
+    fx-font: "SF Pro Display Medium";
+}
+
+#leftPanelHeader{
+    -fx-padding: 0 0 15pt 0;
+}
+
+.slider{
+    -fx-min-width: 50pt;
+}
+
+.slider .track{
+    -fx-background-color: #d2d2d2;
+    -fx-padding: 0.5em;
+    -fx-background-radius: 0;
+    -fx-border-style: none;
+    -fx-background-radius: 0;
+}
+
+.slider .thumb{
+    -fx-padding: 0.5em;
+    -fx-background-color: #414141;
+}
