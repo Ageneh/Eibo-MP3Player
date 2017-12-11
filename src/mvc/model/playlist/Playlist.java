@@ -1,27 +1,48 @@
 package mvc.model.playlist;
 
 import exceptions.NotAvailableException;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import misc.ANSI;
 import mvc.model.extension.enums.Filetype;
 import mvc.model.extension.m3u.M3UProcessor;
 
 import java.io.File;
-import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Playlist {
-    private final long CONST_DEFICITE = 3600000; // 1hour
 
-//    private ArrayList<Song> songs;
+    /////////////////////// VARIABLES
+
+    /**
+     * An array-list containing all songs of a playlist.
+     * @see Song
+     */
     private ArrayList<Song> songs;
     private String path;
     private String title;
     private File playlistFile;
-    private Time totalTime;
-    private int currentSong;
+    private int currentSongIndx;
     private long totalLength;
 
+    /**
+     * An array-list of integer values which contains pointer in a random order,
+     * which will be used for the shuffle playback.
+     */
     private boolean playShuffle;
+    /**
+     * Is a pointer/value from {@link #playShuffle}.
+     */
     private int shuffleIndex;
+    /**
+     * A <it>pointer</it> which points to the current position of the {@link #playShuffle}.
+     * <br>If the next song is to be played this <it>pointer</it> will be incremented and decremented
+     * if the previous song is requested.</br>
+     */
+    private int shufflePos;
     private ArrayList<Integer> shufflePlaylist;
 
 
@@ -38,57 +59,53 @@ public class Playlist {
         this.title = title;
         this.path = path;
         this.playlistFile = new File(path);
-        this.currentSong = 0;
+        this.currentSongIndx = 0;
         this.songs = new ArrayList<>();
         this.totalLength = 0;
-        this.totalTime = new Time(0);
         if(this.playlistFile.exists()){
-            this.addSongs(new M3UProcessor().getSongs(path));
+            this.addSongs(new M3UProcessor().readSongs(path));
         }
         this.shufflePlaylist = null;
         this.playShuffle = false;
         this.shuffleIndex = 0;
+        this.shufflePos = 0;
     }
 
 
     /////////////////////// PUBLIC METHODS
 
-    public void addSongs(ArrayList<String> songpaths){
+    public void addSongs(ArrayList<Song> songpaths){
         Song tempSong;
-        for(String path : songpaths){
-            tempSong = new Song(path);
-            this.songs.add(tempSong);
-            tempSong = null;
-        }
-        this.calcTotalLength();
-    }
-
-    public void addSongs(String ... songpaths){
-        for(String path : songpaths){
-            System.out.println("Adding: " + path);
-            this.songs.add(new Song(path));
-        }
-        this.calcTotalLength();
-    }
-
-    public void addSongs(Song... songs){
-        for(Song song : songs){
+        for(Song song : songpaths){
+            if(song == null){
+                continue;
+            }
             this.songs.add(song);
         }
         this.calcTotalLength();
     }
 
-    public void addSongs(File... songs){
-        for(File songFile : songs){
-            this.songs.add(new Song(songFile));
+    public void deleteSongs(ArrayList<Song> songpaths){
+        for(Song song : songpaths){
+            this.songs.remove(song);
         }
         this.calcTotalLength();
     }
 
+    /**
+     * Resets the {@literal currentSongIndx} to {@literal 0}.
+     */
     public void reset(){
-        this.currentSong = 0;
+        this.currentSongIndx = 0;
     }
 
+    /**
+     * Will set the {@literal playShuffle} flag and based on its state will
+     * toggleShuffle the current {@link Playlist}.
+     * @return Returns the value of {@literal playShuffle}.
+     * <br>Return is true, if the current {@link Playlist} is shuffled and
+     * will be false if its in regular play.</br>
+     */
     public boolean toggleShuffle(){
         this.playShuffle = this.playShuffle ? false : true;
 
@@ -97,20 +114,20 @@ public class Playlist {
 
             for(int i = 0; i < shufflePlaylist.size(); i++){
                 System.out.println(
-                        this.songs.get(
-                                this.shufflePlaylist.get(i)
-                        ).getTitle()
+                        ANSI.MAGENTA.colorize(
+                                i+1 + ". " +
+                            this.songs.get(
+                                    this.shufflePlaylist.get(i)
+                            ).getTitle() + " "
+                        )
                 );
             }
+            this.shuffleIndex = 0;
         }
         else{
             this.shufflePlaylist = null;
             this.shuffleIndex = 0;
         }
-
-        System.out.println("########");
-        System.out.println("SHUFFLE: " + this.playShuffle);
-        System.out.println("########");
 
         return this.playShuffle;
     }
@@ -120,7 +137,7 @@ public class Playlist {
      * be called before a {@link Song} is played.
      * @param songToPlay The {@link Song} which is to be played.
      * @return Returns a boolean which will be {@code true}, if the {@link Song
-     * songToPlay} is part of the Playlist. <br>Return false {@code false} if the {@link Song
+     * songToPlay} is part of the {@link Playlist}. <br>Return false {@code false} if the {@link Song
      * songToPlay} is not part of the {@link Playlist}.</br><br>If the given {@link Song} is already
      * playing {@code false} will be returned.</br>
      */
@@ -129,16 +146,22 @@ public class Playlist {
             return false;
         }
         else{
-            System.out.printf("CONTAINS------------------>>>>>>>>>>><");
-//            this.setCurrentSong(
+//            System.out.printf("CONTAINS------------------>>>>>>>>>>><");
+//            this.setCurrentSongIndx(
 //                    this.songs.indexOf(songToPlay)
 //            );
         }
         return true;
     }
 
+    /**
+     * Checks whether a given {@link Song song} is the current {@link Song song} of the {@link Playlist}.
+     * @param song The {@link Song} which is to be checked.
+     * @return Returns a boolean which is true if the {@link Song song} is the {@literal currentSongIndx}
+     * and false if not.
+     */
     public boolean isCurrentSong(Song song){
-        if(this.songs.get(this.currentSong).equals(song)){
+        if(this.getCurrentSong().equals(song)){
             return true;
         }
         else{
@@ -146,8 +169,18 @@ public class Playlist {
         }
     }
 
+    /**
+     * Will check whether the {@link Playlist} is playig the last song.
+     * @return If the {@link Song current song} is not the last {@link Song} the return value is {@code true}.
+     * Else {@code false} will be returned.
+     */
     public boolean hasNext(){
-        if(currentSong < this.songs.size()){
+        if(playShuffle){
+            if(shuffleIndex < this.songs.size()){
+                return true;
+            }
+        }
+        else if(currentSongIndx < this.songs.size()){
             return true;
         }
         return false;
@@ -160,6 +193,9 @@ public class Playlist {
 
     /////////////////////// PRIVATE METHODS
 
+    /**
+     * Will calculate the {@literal total length} of a {@link Playlist}.
+     */
     private void calcTotalLength(){
         totalLength = 0;
         for(Song song : this.songs){
@@ -168,16 +204,21 @@ public class Playlist {
             }
             totalLength += song.getLengthMillis();
         }
-//        totalLength *= 1000;
-        this.totalTime = new Time(totalLength);
     }
 
+    /**
+     * This method will toggleShuffle the indeces of the {@link Playlist}.
+     * <br>The indeces will then be saved inside an {@link ArrayList}, with a randomized order,
+     * named {@link #shufflePlaylist}. The integer values inside the {@link ArrayList array-list}
+     * will be used as pointers for the {@link Playlist}.</br>
+     * Depending on the flag {@link #playShuffle} either the original or the randomized {@link Playlist}
+     * will be played.
+     */
     private void shuffle(){
-
         int[] songIndeces = new int[this.songs.size()];
+        int i;
 
-        int i = 0;
-        songIndeces[0] = this.currentSong;
+        songIndeces[0] = this.currentSongIndx;
         for(i = 1; i < songIndeces.length; i++){
             if(i == songIndeces[0]){
                 continue;
@@ -210,99 +251,104 @@ public class Playlist {
             }
             System.out.println();
         }
-//        FileWriter fw = null;
-//        ArrayList<String> tempPlaylistSongs = new ArrayList<>();
-//        try {
-//            fw = new FileWriter("MP3_v2/playlists/shuffle.m3u");
-//
-//            for(int index : songs){
-//                fw.write(this.playlists.get(indexCurrentPlaylist).getPlaylistSongs().get(index).getPath());
-//                fw.write(System.lineSeparator());
-//
-//                tempPlaylistSongs.add(this.playlists.get(indexCurrentPlaylist).getPlaylistSongs().get(index).getPath());
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        finally {
-//            try {
-//                fw.flush();
-//                fw.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
     }
 
 
     /////////////////////// GETTERS
 
-    public Song getCurrentSong(){
-        return this.songs.get(currentSong);
+    /**
+     * Setter for setting the {@literal currentSongIndx}.
+     * @param val The given {@link Integer} value will be added onto the {@literal currentSongIndx}.
+     *            Depending on the given {@param val} and the size of the {@link Playlist} the
+     *            argument and {@literal currentSongIndx} will added together.
+     */
+    public void setCurrentSongIndx(int val){
+        if(val >= 0 && val < this.songs.size()) {
+            this.currentSongIndx = val;
+        }
+        else{
+            this.currentSongIndx = 0;
+        }
     }
 
+    /**
+     * {@link #setCurrentSongIndx(int)} Only difference is that in this case a {@link Song} object is given.
+     * @param song The song which is to be set as the new {@link Song current Song}.
+     * @return Returns a boolean which says whether the given {@link Song} has been set as the current or not.
+     */
+    public boolean setCurrentSong(Song song){
+        if(this.isInPlaylist(song) && !this.isCurrentSong(song)){
+            this.currentSongIndx = this.songs.indexOf(song);
+            if(playShuffle){
+                this.currentSongIndx = this.shufflePlaylist.indexOf(
+                        this.currentSongIndx
+                );
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param song The {@link Song} of which its index is to be found.
+     * @return Returns the index of the given {@link Song}. Will be {@value -1} if the {@link Song}
+     * is not part of the {@link Playlist}.
+     */
     public int getSongIndex(Song song){
         return this.songs.indexOf(song);
     }
 
+    public long getTotalLength(){
+        return this.totalLength;
+    }
+
+    /**
+     * Getter of the {@literal song title}.
+     * @return Returns a {@link String} object.
+     */
     public String getTitle() {
         return title;
     }
 
-    public File getPlaylistFile() {
-        return playlistFile;
+    /**
+     * Getter of {@link Song current song}.
+     * @return Returns a {@link Song} object.
+     */
+    public Song getCurrentSong(){
+        return this.songs.get(currentSongIndx);
     }
 
-    public int getCurrentSongIndex(){
-        return this.currentSong;
-    }
-
-    public long getTotalLengthInMillis(){
-        return totalLength;
-    }
-
-    public Time getTotalTime(){
-        return this.totalTime;
-    }
-
-
-    /////////////////////// SETTERS
-
-    public void setCurrentSong(int val){
-        if(val >= 0 && val < this.songs.size()) {
-            this.currentSong = val;
-        }
-        else{
-            this.currentSong = 0;
-        }
-    }
-
-    public void setCurrentSong(Song song){
-        if(this.isInPlaylist(song) && !this.isCurrentSong(song)){
-            this.currentSong = this.songs.indexOf(song);
-        }
-    }
-
+    /**
+     * Sets the next Song.
+     * @param val The the direction and amount of steps to skip {@link Song songs}.
+     * @return Returns the new {@link Song current song}.
+     * @throws NotAvailableException
+     */
     public Song setNext(int val) throws NotAvailableException {
         if(playShuffle){
-            int shufflePos = this.shufflePlaylist.get(shuffleIndex);
-            if(shufflePos + val >= 0 && shufflePos + val <= this.songs.size()) {
-                this.songs.get(
-                        this.shufflePlaylist.get((this.shuffleIndex += val) % this.shufflePlaylist.size())
-                );
+            if(this.shuffleIndex + val >= 0
+                    && this.shuffleIndex + val <= this.songs.size()) {
+                this.shuffleIndex += val;
+                this.currentSongIndx = this.shufflePlaylist.get(this.shuffleIndex);
             }
-            else{
-                this.shuffle();
-                this.setNext(val);
-            }
+//            else{
+//                this.shuffle();
+//                this.setNext(val);
+//            }
         }
-        else if(currentSong + val >= 0
-                && currentSong + val < this.songs.size()){
-            this.currentSong += val;
-            return this.songs.get(currentSong);
+        else if(currentSongIndx + val >= 0
+                && currentSongIndx + val < this.songs.size()){
+            this.currentSongIndx += val;
         }
-        throw new NotAvailableException("SONG INDEX DOES NOT EXIST.");
+        else {
+            throw new NotAvailableException();
+        }
+        return this.songs.get(currentSongIndx);
+    }
+
+    public SimpleListProperty<Song> getSongsObservable(){
+        ObservableList<Song> songs = FXCollections.observableList(this.songs);
+        return new SimpleListProperty<>(songs);
     }
 
 }

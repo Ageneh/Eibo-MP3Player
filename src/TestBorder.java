@@ -13,7 +13,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import mvc.model.Model;
+import mvc.model.MP3Player;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -23,7 +23,7 @@ import java.io.IOException;
 public class TestBorder extends Application {
 
     ImageView coverImg;
-    Model mp3;
+    MP3Player mp3;
 
     public static void main(String[] args) {
         launch(args);
@@ -31,15 +31,15 @@ public class TestBorder extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-//        mp3 = new Model("/view_assests/henock/IdeaProjects/GitHub_MP3Player/MP3_v2/playlists/temp");
+//        mp3 = new MP3Player("/view_assests/henock/IdeaProjects/GitHub_MP3Player/MP3_v2/playlists/temp");
         BorderPane root = new BorderPane();
 
 //        root.setBottom(new HBox(new Label("BOTTOM")));
 //        root.getBottom().setStyle("-fx-background-color: aqua;");
-////        ImageView a = new ImageView((Element) convertToJavaFXImage(mp3.getPlaylists().get(1).getSongs().get(2).getCover(), 300, 300));A
-//        ArrayList<Song> ar = mp3.getPlaylists().get(0).getSongs();
+////        ImageView a = new ImageView((Element) convertToJavaFXImage(mp3.getPlaylists().get(1).readSongs().get(2).getCover(), 300, 300));A
+//        ArrayList<Song> ar = mp3.getPlaylists().get(0).readSongs();
 //        byte[] br = ar.get(2).getCover();
-//        Image a = convertToJavaFXImage(mp3.getPlaylists().get(1).getSongs().get(0).getCover(), 300, 300);
+//        Image a = convertToJavaFXImage(mp3.getPlaylists().get(1).readSongs().get(0).getCover(), 300, 300);
 //        ImageView aView = new ImageView(a);
 //        aView.setPreserveRatio(true);
 //        root.setCenter(aView);

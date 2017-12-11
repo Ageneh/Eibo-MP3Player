@@ -10,14 +10,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-public abstract  class ImageConverter {
+public abstract class ImageConverter {
 
     //// IMAGE CONVERTER
-    private Image convertToJavaFXImage(byte[] raw) {
+    public static Image convertToJavaFXImage(byte[] raw) {
         return convertToJavaFXImage(raw, Dim.W_COVER_IMG.doubleVal(), Dim.H_COVER_IMG.doubleVal());
     }
 
-    private Image convertToJavaFXImage(byte[] raw, final int width, final int height) {
+    public static Image convertToJavaFXImage(byte[] raw, final int width, final int height) {
         Image image = new WritableImage(width, height);
         try {
             ByteArrayInputStream bis = new ByteArrayInputStream(raw);

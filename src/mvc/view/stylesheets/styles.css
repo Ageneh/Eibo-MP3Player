@@ -10,7 +10,7 @@
     -fx-background-color: #dddddd;
 }
 
-#play, #pause, #stop, #next, #prev, #mute{
+#play, #pause, #stop, #next, #prev, #mute, #shuffle{
     -fx-text-fill: transparent;
     -fx-background-color: transparent;
     -fx-padding: 5pt 10pt 6pt 10pt;
@@ -43,6 +43,10 @@
 
 #mute{
     -fx-background-image: url("/mvc/view/stylesheets/icons//unmute.png");
+}
+
+#shuffle{
+    -fx-background-image: url("/mvc/view/stylesheets/icons//shuffle.png");
 }
 
 #newPlaylist{

@@ -1,7 +1,8 @@
 package mvc;
 
 import javafx.application.Application;
-import mvc.misc.ANSI;
+import misc.ANSI;
+import mvc.model.extension.enums.StandardValues;
 import mvc.view.StartupView;
 
 import java.io.File;
@@ -53,14 +54,14 @@ public class MP3Launcher {
      */
     private void checkFolder() {
         File playlistDir;
-        playlistDir = new File(StandardValues.STD_PLAYLIST_ROOT.getVal());
+        playlistDir = new File(StandardValues.STD_PLAYLIST_ROOT.getString());
 
         if(playlistDir.exists() && playlistDir.isDirectory()){
             System.out.println(ANSI.GREEN.colorize("Playlist folder \""+ playlistDir.getAbsolutePath() +"\" exists."));
         }
         else{
             playlistDir.mkdir();
-            System.out.println(ANSI.YELLOW.colorize("Playlist folder \"" + StandardValues.TEMP_PLIST_TITLE.getVal()
+            System.out.println(ANSI.YELLOW.colorize("Playlist folder \"" + StandardValues.TEMP_PLIST_TITLE.getString()
                     + "\" has been created."));
             System.out.println(ANSI.YELLOW.colorize("From now on, you can find all your playlists, in this folder:"));
             System.out.println(ANSI.YELLOW.colorize("\"" + playlistDir.getAbsolutePath()));

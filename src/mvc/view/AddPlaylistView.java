@@ -14,8 +14,9 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
-import mvc.StandardValues;
+import mvc.model.extension.enums.StandardValues;
 import mvc.model.extension.enums.Filetype;
 import mvc.view.enums.Dim;
 
@@ -25,6 +26,8 @@ import java.util.Observable;
 import java.util.Observer;
 
 public class AddPlaylistView extends Application {
+
+    private final double MIN_OPACITY = 0.3;
 
     private FlowPane root;
     private Label fileText;
@@ -63,8 +66,11 @@ public class AddPlaylistView extends Application {
         primaryStage.setResizable(false);
         primaryStage.setAlwaysOnTop(true);
         primaryStage.setOnCloseRequest(
-                event -> primaryStage.close()
+                event -> {
+                    primaryStage.close();
+                }
         );
+        primaryStage.initModality(Modality.APPLICATION_MODAL);
 
         TextField titleField = new TextField();
         titleField.setPrefColumnCount(15);
@@ -77,9 +83,8 @@ public class AddPlaylistView extends Application {
         Text playlistTitle = new Text("Set Playlist title:");
         playlistTitle.setId("mainLabel");
 
-        this.load = new Button("Create");
-        this.load.setOpacity(0.3);
-//        this.load.setStyle("-fx-background-color: #dddddd; -fx-text-fill: #cccccc;");
+        this.load = new Button("Create Playlist");
+        this.load.setOpacity(MIN_OPACITY);
         this.load.setOnMouseClicked(
                 event -> {
                     if(filepaths.size() > 0) {
@@ -90,7 +95,7 @@ public class AddPlaylistView extends Application {
                 }
         );
 
-        this.supportedMessage = new Label(StandardValues.DRAG_MSG_STD.getVal());
+        this.supportedMessage = new Label(StandardValues.DRAG_MSG_STD.getString());
         this.supportedMessage.setWrapText(true);
 
         this.files = new ArrayList<>();
@@ -106,7 +111,7 @@ public class AddPlaylistView extends Application {
 
         this.listView = new ListView<>();
         this.listView.setPrefHeight(
-                Dim.H_PLAYLIST_WINDOW.doubleVal() -
+                Dim.H_ADDPLAYLIST_WINDOW.doubleVal() -
                         inputLine.getBoundsInParent().getHeight() -
                         (2* Dim.PAD_PLAYLIST_WINDOW.doubleVal())
         );
@@ -122,8 +127,8 @@ public class AddPlaylistView extends Application {
 
         Scene scene = new Scene(
                 this.root,
-                Dim.W_PLAYLIST_WINDOW.doubleVal(),
-                Dim.H_PLAYLIST_WINDOW.doubleVal()
+                Dim.W_ADDPLAYLIST_WINDOW.doubleVal(),
+                Dim.H_ADDPLAYLIST_WINDOW.doubleVal()
         );
 
         this.listView.maxHeightProperty().bind(
@@ -137,7 +142,7 @@ public class AddPlaylistView extends Application {
         );
 
         primaryStage.setScene(scene);
-        primaryStage.show();
+        primaryStage.showAndWait();
     }
 
     /**

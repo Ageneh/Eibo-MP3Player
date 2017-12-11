@@ -1,237 +1,368 @@
 package mvc.controller;
 
+import com.sun.javafx.beans.event.AbstractNotifyListener;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
-import javafx.beans.property.SimpleFloatProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.*;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableObjectValue;
+import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import mvc.model.Model;
+import misc.ANSI;
+import mvc.model.MP3Player;
+import mvc.model.extension.ImageConverter;
 import mvc.model.extension.enums.Skip;
 import mvc.model.playlist.Playlist;
 import mvc.model.playlist.Song;
 import mvc.view.AddPlaylistView;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.TimeUnit;
-
-import static javafx.application.Application.launch;
 
 public class Controller extends Observable {
 
     /////////////////////// VARIABLES
 
-    private volatile Model model;
+//    private volatile MP3Player model;
 
-    private ObservableList<Playlist> allPlaylists;
+    private SimpleListProperty<Playlist> allPlaylists;
+    /**
+     * Saves the current, selected {@link Playlist}, which is not necessarily playing.
+     * <br>Used to show its {@link Playlist#songs songs}.</br>
+     */
+    private SimpleObjectProperty<Playlist> currentPlaylist;
     private SimpleListProperty<Song> currentSongs;
+    private SimpleObjectProperty<Song> currentSong;
+    /**
+     * A {@link SimpleStringProperty string property} which saves the length of the {@link MP3Player#getCurrentSong()
+     * current song}.
+     */
     private SimpleStringProperty currentSongLength;
+    /**
+     * A {@link SimpleStringProperty string property} which saves the position of the {@link MP3Player#player player}.
+     */
     private SimpleStringProperty currentSongPosition;
+    /**
+     * A {@link SimpleStringProperty string property} which saves the current path of the folder where all playlists
+     * are located.
+     * @see mvc.model.playlist.PlaylistManager#rootPath
+     */
+    private SimpleStringProperty playlistFolderPath;
+    /**
+     * A {@link SimpleFloatProperty float property} which saves the volume of the {@link MP3Player#player player}.
+     */
     private SimpleFloatProperty currentVolume;
+    /**
+     * An {@link SimpleIntegerProperty integer property} which saves the number of available {@link Playlist playlists}.
+     * <br>Uses the {@link java.util.ArrayList#size()} of the {@link MP3Player#getPlaylists() array-list containing all playlists}.</br>
+     */
     private SimpleIntegerProperty playlistCount;
-    private SimpleStringProperty plistPath;
     private IntegerBinding allPlaylistsSize;
 
-    private static ModelObserver modelObserver;
+    private MP3Player model;
+
+    private byte[] coverImg;
+
     private static AddPlaylistView smallWindow;
     private static DragAndDrogObserver dndObserver;
-
-    boolean playlistChanged = false;
+    private static ModelObserver modelObserver;
 
 
     /////////////////////// CONSTRUCTOR
 
     public Controller(){
-        this.model = new Model();
-        this.currentSongs = new SimpleListProperty<>();
-//        this.allPlaylists = new SimpleListProperty<>();
-        this.currentVolume = new SimpleFloatProperty();
-        this.currentSongLength = new SimpleStringProperty(this.setTimeFormat(0));
-        this.currentSongPosition = new SimpleStringProperty(this.setTimeFormat(0));
-        this.playlistCount = new SimpleIntegerProperty(0);
-        this.plistPath = new SimpleStringProperty(model.getPlistPath());
+        this.model = new MP3Player();
 
-        this.currentSongs.set(this.model.getCurrentSongsObservable());
+        this.allPlaylists = new SimpleListProperty<>(FXCollections.observableList(model.getPlaylists()));
+
+        this.playlistCount = new SimpleIntegerProperty(this.allPlaylists.size());
+        this.playlistCount.bind(
+                Bindings.size(this.allPlaylists)
+        );
+
         this.setAllPlaylists();
-        this.allPlaylistsSize = Bindings.size(this.allPlaylists);
+
+        this.currentPlaylist = new SimpleObjectProperty<>(model.getCurrentPlaylist());
+        this.currentPlaylist.addListener(
+                (observable, oldValue, newValue) -> {
+                    setChanged();
+                    notifyObservers();
+                }
+        );
+
+        this.currentSongLength = new SimpleStringProperty(this.setTimeFormat(0));
+
+        this.currentSong = new SimpleObjectProperty<>(
+                this.model.getCurrentSong()
+        );
+        try {
+            this.coverImg = model.getCurrentSong().getCover();
+        }
+        catch (NullPointerException e){
+            // DO NOTHING
+        }
+
+        this.currentSongs = new SimpleListProperty<>();
+        try {
+            this.currentSongs.bind(
+                    this.currentPlaylist.get().getSongsObservable()
+            );
+        }
+        catch (NullPointerException e){
+            // DO NOTHING
+        }
+
+        this.currentVolume = new SimpleFloatProperty();
         this.currentVolume.set(this.model.getCurrentVol());
+        this.currentVolume.addListener(
+                (observable, oldValue, newValue) -> {
+                    setChanged();
+                    notifyChanges();
+                }
+        );
+
+        this.currentSongPosition = new SimpleStringProperty(this.setTimeFormat(0));
+
+        this.playlistFolderPath = new SimpleStringProperty(
+                model.getPlistPath()
+        );
 
         //// OBSERVERS & VIEWS
         modelObserver = new ModelObserver();
-        smallWindow = new AddPlaylistView();
         dndObserver = new DragAndDrogObserver();
+        smallWindow = new AddPlaylistView();
+        smallWindow.addObservers(dndObserver);
+    }
+
+    public Controller( String a){
+//        this.model = new MP3Player();
+//
+//        this.allPlaylists = new SimpleListProperty<>(FXCollections.observableArrayList(model.getPlaylists()));
+//
+//        this.playlistFolderPath = new SimpleStringProperty(model.getPlistPath());
+////        this.currentPlaylist = this.model.getCurrentPlaylist();
+//        this.playlistCount = new SimpleIntegerProperty(
+//                this.allPlaylists.size()
+//        );
+//        this.allPlaylistsSize = Bindings.size(this.allPlaylists);
+//        this.playlistCount.bind(
+//                this.allPlaylistsSize
+//        );
+//
+//        this.currentSongs = new SimpleListProperty<>(
+//                FXCollections.observableList(this.model.getCurrentSongs())
+//        );
+//        this.currentSongLength = new SimpleStringProperty(
+//                this.setTimeFormat(this.model.getCurrentSong().getLengthMillis())
+//        );
+//        this.currentSongPosition = new SimpleStringProperty(this.setTimeFormat(0));
+//
+//        this.currentVolume = new SimpleFloatProperty(this.model.getCurrentVol());
+//
+//        //// OBSERVERS & VIEWS
+//        modelObserver = new ModelObserver();
+//        smallWindow = new AddPlaylistView();
+//        dndObserver = new DragAndDrogObserver();
     }
 
 
     //////////////////////// MODEL COMMUNICATION
+
+    public void loadPlaylist(){
+        this.model.load(currentPlaylist.get());
+    }
+
+    /**
+     * {@link MP3Player#play()}
+     */
     public void play(){
         model.play();
     }
 
+    /**
+     * {@link MP3Player#play(Song)}
+     */
     public void play(Song songToPlay){
-        this.model.play(songToPlay);
+        model.play(songToPlay);
     }
 
+    /**
+     * {@link MP3Player#pause()}
+     */
     public void pause(){
         this.model.pause();
     }
 
+    /**
+     * {@link MP3Player#stop()}
+     */
     public void stop(){
         this.model.stop();
     }
 
+    /**
+     * {@link MP3Player#mute()}
+     */
     public void mute(){
         this.model.mute();
     }
 
-    public void backward(){
-        this.skip(Skip.BACKWARD);
+    /**
+     * {@link MP3Player#skip(Skip)}
+     */
+    public void skip(Skip val){
+        model.skip(val);
     }
 
-    public void forward(){
-        this.skip(Skip.FORWARD);
-    }
-
-    public void prev(){
-        this.skip(Skip.PREVIOUS);
-    }
-
-    public void next(){
-        this.skip(Skip.NEXT);
-    }
-
-    private void skip(Skip value){
-        this.model.skip(value);
-    }
-
-    public void shuffle(){
-        this.model.toggleShuffle();
-    }
-
+    /**
+     * {@link MP3Player#setVolume(float)}
+     */
     public void setVolume(float val){
-        this.model.setVol(val);
+        this.model.setVolume(val);
+        this.currentVolume.set(model.getCurrentVol());
     }
 
-    public void addSongs(Stage primaryStage){
-        smallWindow.addObservers(dndObserver);
+    /**
+     * Starts and shows the drag'n'drop view where the user is able to create {@link Playlist playlists}.
+     * @see AddPlaylistView
+     */
+    public void addSongs(){
         smallWindow.start();
     }
 
-    /////////////////////// MODEL COMMUNICATION END
+    /**
+     * {@link MP3Player#toggleShuffle()}
+     */
+    public void toggleShuffle(){
+        this.model.toggleShuffle();
+    }
 
 
     /////////////////////// PUBLIC METHODS
 
     private void notifyChanges(){
-        new Thread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        setChanged();
-                        notifyObservers();
-//                        System.out.println("==========");
-//                        System.out.println("==========");
-//                        System.out.println("==========");
-//                        System.out.println("214365787");
-//                        System.out.println("==========");
-//                        System.out.println("==========");
-                    }
-                }
-        ).start();
+        setChanged();
+        notifyObservers();
     }
 
 
     /////////////////////// PRIVATE METHODS
 
     private void setAllPlaylists(){
-        this.allPlaylists = FXCollections.observableArrayList(this.model.getPlaylistsObservable());
-
-//        for(int i = 0; i > allPlaylists.size(); i++){
-//            System.out.println(i+1 + ".) " + allPlaylists.get(i).getTitle());
-//        }
+        this.allPlaylists = new SimpleListProperty<>(FXCollections.observableList(model.getPlaylists()));
+//        this.allPlaylists.setAll(
+//                FXCollections.observableList(model.getPlaylists())
+//        );
     }
 
     private String setTimeFormat(long milliseconds){
-        String string =  String.format(
+        return String.format(
                 "%02d:%02d",
                 TimeUnit.MILLISECONDS.toMinutes(milliseconds),
                 TimeUnit.SECONDS.toSeconds(
-                        TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliseconds))
+                TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
+                        TimeUnit.MINUTES.toSeconds(
+                                TimeUnit.MILLISECONDS.toMinutes(milliseconds)
+                        )
                 )
         );
-//        System.out.printf(string);
-        return string;
     }
 
 
     /////////////////////// GETTERS
 
-    public int getPlaylistCount() {
-        return playlistCount.get();
+    public boolean isShuffle(){
+        return model.isShuffle();
     }
 
-    public final SimpleStringProperty getPlayerPosition(){
-        return this.currentSongPosition;
+    public float getVolume(){
+        return model.getCurrentVol();
     }
 
-    public final SimpleStringProperty getCurrentSongLength() {
-        return this.currentSongLength;
+    /**
+     * @return Returns the number of songs inside the current playlist.
+     */
+    public SimpleIntegerProperty getPlaylistCount() {
+        return playlistCount;
     }
 
-    public final SimpleStringProperty getCurrentSongPosition() {
-        return this.currentSongPosition;
+    public String getPlaylistFolderPath() {
+        return playlistFolderPath.get();
     }
 
-    public final ObservableList<Playlist> getAllPlaylists() {
-        return allPlaylists;
-    }
-
-    public final ObservableList<Song> getCurrentSongs() {
-        return currentSongs.get();
-    }
-
-    public final ObservableList<Song> getSongsData(Playlist playlist){
+    /**
+     * @return Returns the {@link #coverImg current cover image} of the {@link
+     * MP3Player#getCurrentSong() current song}.
+     */
+    public Image getCoverImg(){
         try {
-            ObservableList<Song> songs = FXCollections.observableArrayList(
-                    this.currentSongs
+            return ImageConverter.convertToJavaFXImage(
+                    currentSong.get().getCover()
             );
-            return songs;
         }
-        catch (NullPointerException npe){
+        catch (NullPointerException e){
             return null;
         }
     }
 
-    public final ObservableList<Playlist> getPlaylistData(){
-        ObservableList<Playlist> playlists = FXCollections.observableArrayList(
-                this.model.getPlaylists()
-        );
-        return playlists;
+    /**
+     * @return Returns a {@link SimpleStringProperty} of {@link #currentSongLength}.
+     */
+    public SimpleStringProperty getCurrentSongLength() {
+        return this.currentSongLength;
     }
 
-    public final String getPlistPath() {
-        return plistPath.get();
+    public SimpleStringProperty getCurrentSongPosition() {
+        return this.currentSongPosition;
     }
+
+    public ObservableList<Playlist> getAllPlaylists() {
+        return allPlaylists;
+    }
+
+    public ObservableList<Song> getCurrentSongs() {
+        return currentSongs.get();
+    }
+
+    public ObservableList<Playlist> getPlaylistData(){
+        return FXCollections.observableArrayList(
+                this.model.getPlaylists()
+        );
+    }
+
+    public SimpleObjectProperty<Playlist> getCurrentPlaylist() {
+        return currentPlaylist;
+    }
+
 
     /////////////////////// SETTERS
 
-    public void setCurrentSongsData(Playlist selected){
-        this.currentSongs.removeAll();
-        this.currentSongs.setAll(selected.getSongs());
+    public void setCurrentPlaylist(Playlist playlist){
+        this.currentPlaylist.set(playlist);
+    }
 
-//        this.model.addPlaylist(selected);
+    public void setCurrentSong(Song song){
+        this.model.getCurrentPlaylist().setCurrentSong(song);
     }
 
 
     /////////////////////// PRIVATE CLASSES
 
+    /**
+     * An observer specifically for the {@link MP3Player}.
+     * <br>Implements {@linkplain Observer}.</br>
+     */
     private class ModelObserver implements Observer{
 
         private ModelObserver(){
@@ -240,30 +371,14 @@ public class Controller extends Observable {
 
         @Override
         public void update(Observable o, Object arg) {
-            currentSongs.set(
-                    model.getCurrentSongsObservable()
-            );
-            currentVolume.set(
-                    model.getCurrentVol()
-            );
-            currentSongLength.set(
-                    setTimeFormat(model.getCurrentSong().getLengthSeconds())
-            );
-            currentSongPosition.set(
-                    setTimeFormat(
-                            model.getCurrentPosition()
-                    )
-            );
-            playlistCount.bind(
-                    allPlaylistsSize
-            );
+            System.out.print(model.getCurrentSong().getTitle());
+            System.out.println(", " + model.getCurrentPosition());
 
-            playlistChanged = true;
+            allPlaylists.set(FXCollections.observableList(model.getPlaylists()));
+            currentPlaylist.set(model.getCurrentPlaylist());
+            currentSong.set(currentPlaylist.get().getCurrentSong());
 
-            if(playlistChanged) {
-                setAllPlaylists();
-                playlistChanged = false;
-            }
+            setChanged();
             notifyChanges();
         }
     }
@@ -273,24 +388,18 @@ public class Controller extends Observable {
      * {@link Observer} will be added to fot the {@link AddPlaylistView
      * Drag'n'Drop window}, where the user can create a new {@link Playlist}
      * via drag and drop.
+     * <br>Implements {@linkplain Observer}.</br>
      */
     private class DragAndDrogObserver implements Observer{
         @Override
         public void update(Observable o, Object arg) {
-            Platform.runLater(() -> {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (smallWindow.hasSongs()) {
-                            model.newPlaylist(
-                                    smallWindow.getTitle(),
-                                    smallWindow.getFiles()
-                            );
-                            notifyObservers();
-                        }
-                    }
-                }).start();
-            });
+            if (smallWindow.hasSongs()) {
+                model.newPlaylist(
+                        smallWindow.getTitle(),
+                        smallWindow.getFiles()
+                );
+                notifyObservers();
+            }
         }
     }
 

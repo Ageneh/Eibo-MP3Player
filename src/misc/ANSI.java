@@ -1,4 +1,4 @@
-package mvc.misc;
+package misc;
 
 public enum ANSI {
 
@@ -28,5 +28,13 @@ public enum ANSI {
 
     public String colorize(String str) {
         return esc + str + end;
+    }
+
+    public void print(String str) {
+        System.out.print(esc + str + end);
+    }
+
+    public void println(String str) {
+        this.print(str + System.lineSeparator());
     }
 }

@@ -9,13 +9,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class M3UProcessor {
 
     private static final String EXT_M3U = "#EXTM3U";
     private static final String EXT_SONG = "#EXTINF";
 
-    private String pathname;
     private boolean isEXT;
     private BufferedReader breader;
 
@@ -29,41 +29,20 @@ public class M3UProcessor {
 
     /////////////////////// PUBLIC METHODS
 
-    public void writePlaylist(String title, String directoryPath, ArrayList<Song> playlistSongs){
-        if(!new File(directoryPath + title + Filetype.M3U.getSuffix()).exists()){
-            FileWriter fw = null;
-            try {
-                if(title == null || title.equals("")){
-                    LocalDateTime ld = LocalDateTime.now();
-                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM_HH:mm:ss");
-                    title = "NewPlaylist_" + dtf.format(ld);
-
-                    System.out.println("NEW PLAYLIST: " + title);
-                }
-                fw = new FileWriter(new File(directoryPath + title + Filetype.M3U.getSuffix()));
-
-                fw.flush();
-                fw.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        this.writeExtended(title, directoryPath, playlistSongs);
-//        if(this.isEXT){
-//            this.writeExtended(title, directoryPath, playlistSongs);
-//        } else{
-//            this.writeSimple(title, directoryPath, playlistSongs);
-//        }
+    public void writePlaylist(String title,
+                              String directoryPath,
+                              ArrayList<File> files){
+        ArrayList<Song> playlistSongs = this.consolidateToArray(files);
+        this.writeEXTM3U(title, directoryPath, playlistSongs);
     }
 
-    public void writePlaylist(String title, String directoryPath, ArrayList<Song> playlistSongs, ArrayList<File> files){
-        playlistSongs = this.consolidateM3Us(playlistSongs, files);
-        this.writePlaylist(title, directoryPath, playlistSongs);
-    }
-
-    public ArrayList<String> getSongs(String pathname){
+    /**
+     * Reads every line of an .m3u file and returns the corresponding {@link Song}.
+     * @param pathname The location where the selected .m3u file is located.
+     * @return Returns an array-list containing {@link Song songs} which can be found in the selected .m3u file.
+     */
+    public ArrayList<Song> readSongs(String pathname){
         try {
-            this.pathname = pathname;
             this.breader = new BufferedReader(
                     new FileReader(
                             new File(pathname)
@@ -81,16 +60,42 @@ public class M3UProcessor {
 
     /////////////////////// PRIVATE METHODS
 
-    private void writeExtended(String title, String directoryPath, List<Song> playlistSongs){
+    private FileWriter initWriter(String title, String directoryPath, Filetype filetype){
+        FileWriter fw = null;
+        try {
+            if(title == null || title.equals("")){
+                LocalDateTime ld = LocalDateTime.now();
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM_HH:mm:ss");
+                title = "NewPlaylist_" + dtf.format(ld);
+
+                System.out.println("NEW PLAYLIST: " + title);
+            }
+            fw = new FileWriter(new File(directoryPath + title + filetype.getSuffix()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fw;
+    }
+
+    /**
+     * Creates an m3u file with all songs from {@param playlistSongs}.
+     * @param title The title which is usd as the filename.
+     * @param directoryPath The location where to write the file at.
+     * @param playlistSongs The content - being {@link Song songs} - of the output m3u.
+     */
+    private void writeEXTM3U(String title, String directoryPath, List<Song> playlistSongs){
         FileWriter writer = null;
         try {
-            writer = new FileWriter(directoryPath + title + Filetype.M3U.getSuffix());
+            writer = initWriter(title, directoryPath, Filetype.M3U);
             writer.append(EXT_M3U);
             writer.append(System.lineSeparator());
             for (Song song : playlistSongs){
                 writer.append(EXT_SONG);
                 writer.append(":");
-                writer.append("" + song.getLengthSeconds());
+                writer.append(String.format(
+                        "%s",
+                        TimeUnit.MILLISECONDS.toSeconds(song.getLengthMillis()))
+                );
                 writer.append(",");
                 writer.append(song.getTitle());
                 writer.append(" - ");
@@ -114,29 +119,27 @@ public class M3UProcessor {
     private boolean checkM3UType(){
         BufferedReader breader2 = breader;
         try {
-            if(breader2.readLine().equals(EXT_M3U)){
+            String line = breader2.readLine();
+            if(line.equals(EXT_M3U) || line.startsWith(EXT_M3U)){
                 return true;
             }
-        } catch (IOException e) {
+        }
+        catch (NullPointerException ignored) { }
+        catch (IOException e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    private ArrayList<String> readM3U(){
-        ArrayList<String> temp = new ArrayList<>();
-        String line = null;
+    private ArrayList<Song> readM3U(){
+        ArrayList<Song> temp = new ArrayList<>();
+        String line;
 
         try {
-            this.breader = new BufferedReader(
-                    new FileReader(
-                            new File(pathname)
-                    )
-            );
             line = this.breader.readLine();
             while (line != null) {
                 if(line.startsWith(".") || line.startsWith("/")){
-                    temp.add(line);
+                    temp.add(new Song(line));
                 }
                 line = this.breader.readLine();
             }
@@ -144,21 +147,43 @@ public class M3UProcessor {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
         return temp;
     }
 
-    private ArrayList<Song> consolidateM3Us(ArrayList<Song> songs, ArrayList<File> files){
-        // TODO
-        Playlist playlist;
+//    private ArrayList<Song> consolidateToArray(ArrayList<Song> songs, ArrayList<File> files){
+//        // TODO
+//        Playlist playlist;
+//
+//        for(File file : files){
+//            playlist = new Playlist(file.getAbsolutePath());
+//            songs.addAll(playlist.getSongs());
+//        }
+//
+//        return songs;
+//    }
+
+    private ArrayList<Song> consolidateToArray(ArrayList<File> files){
+        ArrayList<Song> songs = new ArrayList<>();
 
         for(File file : files){
-            playlist = new Playlist(file.getAbsolutePath());
-            songs.addAll(playlist.getSongs());
+            if(file.getName().endsWith(Filetype.MP3.getSuffix())) {
+                songs.add(
+                        new Song(
+                                file.getAbsolutePath()
+                        )
+                );
+            }
+            else if(file.getName().endsWith(Filetype.M3U.getSuffix())){
+                songs.addAll(
+                        new Playlist(
+                                file.getAbsolutePath()
+                        ).getSongs()
+                );
+            }
         }
 
         return songs;
     }
+
 
 }
