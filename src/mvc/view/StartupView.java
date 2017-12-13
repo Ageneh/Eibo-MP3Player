@@ -205,6 +205,11 @@ public class StartupView extends Application implements Observer {
                                 newValue.getPlaylist()
                         );
                     }
+                    playlistListView.getFocusModel().focus(
+                            playlistListView.getItems().indexOf(
+                                    newValue
+                            )
+                    );
                     playlistListView.refresh();
                 }
         );

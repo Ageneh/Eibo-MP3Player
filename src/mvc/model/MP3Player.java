@@ -207,7 +207,7 @@ public class MP3Player extends Observable {
      * This method will mute the {@link SimpleAudioPlayer player}, by calling {@link #setVolume(float)}
      * if the player is not muted and will unmute by calling {@link #setVolume(float)} with the {@link #currentVol}.
      */
-    public synchronized void mute(){
+    public void mute(){
         if(player.isMuted()){
             this.setVolume(this.currentVol);
         }
@@ -223,7 +223,7 @@ public class MP3Player extends Observable {
      * Will invoke {@link #load(Song)} and hand down the {@link PlaylistManager#getCurrentSong() current song} of the
      * {@link PlaylistManager#getCurrentPlaylist() current playlist}.
      */
-    public synchronized void load(){
+    public void load(){
         this.load(plistManager.getCurrentSong());
     }
 
@@ -231,7 +231,7 @@ public class MP3Player extends Observable {
      * Will invoke {@link #load(String)} handing down the path of the given {@param song}.
      * @param song The {@link Song} which is to be loaded in the {@link #player}.
      */
-    public synchronized void load(Song song){
+    public void load(Song song){
         if(plistManager.hasSong(song)) {
             this.stop();
             ANSI.RED.println("=== STOPPED");
@@ -248,7 +248,7 @@ public class MP3Player extends Observable {
      * Will invoke {@link #load(String)} handing down the path of the given {@param song}.
      * @param playlist The {@link Song} which is to be loaded in the {@link #player}.
      */
-    public synchronized void load(Playlist playlist){
+    public void load(Playlist playlist){
         plistManager.load(playlist);
         ANSI.MAGENTA.println("\n==================================");
         ANSI.MAGENTA.println(plistManager.getCurrentPlaylist().getTitle());
