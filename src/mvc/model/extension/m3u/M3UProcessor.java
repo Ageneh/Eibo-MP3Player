@@ -150,18 +150,6 @@ public class M3UProcessor {
         return temp;
     }
 
-//    private ArrayList<Song> consolidateToArray(ArrayList<Song> songs, ArrayList<File> files){
-//        // TODO
-//        Playlist playlist;
-//
-//        for(File file : files){
-//            playlist = new Playlist(file.getAbsolutePath());
-//            songs.addAll(playlist.getSongs());
-//        }
-//
-//        return songs;
-//    }
-
     private ArrayList<Song> consolidateToArray(ArrayList<File> files){
         ArrayList<Song> songs = new ArrayList<>();
 

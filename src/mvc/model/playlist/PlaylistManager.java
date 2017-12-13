@@ -53,23 +53,35 @@ public class PlaylistManager {
         this.currentPlistIndex = 0;
         this.setAllPlaylists();
         this.isShuffle = false;
+
+        this.load(this.getCurrentPlaylist());
     }
 
 
     /////////////////////// PUBLIC METHODS
 
     public void load(Playlist playlist){
-        if(this.getCurrentPlaylist().equals(playlist)){
-            return;
+        try {
+            if (this.getCurrentPlaylist().equals(playlist)) {
+                ANSI.BLUE.println("ALREADY LOADED PLAYLIST");
+                return;
+            } else {
+                this.getCurrentPlaylist().reset();
+                ANSI.YELLOW.println(currentPlistIndex + "");
+                ANSI.YELLOW.println(this.getCurrentPlaylist().getTitle());
+                this.currentPlistIndex = this.playlists.indexOf(playlist);
+                ANSI.YELLOW.println(currentPlistIndex + "");
+                ANSI.YELLOW.println(this.getCurrentPlaylist().getTitle());
+                this.getCurrentPlaylist().reset();
+                this.setAllPlaylists();
+            }
         }
-        else{
-            this.getCurrentPlaylist().reset();
-            ANSI.YELLOW.println(currentPlistIndex + "");
-            ANSI.YELLOW.println(this.getCurrentPlaylist().getTitle());
+        catch (NullPointerException e){
+            this.playlists.add(playlist);
             this.currentPlistIndex = this.playlists.indexOf(playlist);
-            ANSI.YELLOW.println(currentPlistIndex + "");
-            ANSI.YELLOW.println(this.getCurrentPlaylist().getTitle());
             this.getCurrentPlaylist().reset();
+            ANSI.RED.println("???????>>>> ADDED PLAYLIST");
+            this.setAllPlaylists();
         }
     }
 
@@ -90,8 +102,9 @@ public class PlaylistManager {
      */
     public void setNextSong(int val) {
         try {
-            this.getCurrentPlaylist().setNext(val);
+            this.getCurrentPlaylist().setNextSong(val);
         } catch (NotAvailableException e) {
+            this.getCurrentPlaylist().getCurrentSong();
         }
     }
 
@@ -144,10 +157,6 @@ public class PlaylistManager {
         Playlist temp;
         for(String playlistPath : tempPlaylistsString){
             temp = new Playlist(playlistPath);
-            if(temp.getSongs().size() == 0){
-                // if there are zero songs dont add it to the array-list
-                continue;
-            }
             this.playlists.add(temp);
         }
         if(!this.playlists.isEmpty()) {
@@ -181,17 +190,24 @@ public class PlaylistManager {
         return isShuffle;
     }
 
+    public boolean setCurrentSong(Song song){
+        return this.getCurrentPlaylist().setCurrentSong(song);
+    }
+
+    /**
+     * @return Returns the {@linkplain #rootPath} where all {@link Playlist playlists}
+     * are/are to be saved.
+     */
+    public String getRootPath() {
+        return rootPath;
+    }
+
     /**
      * @return Returns the current song.
      * @see Playlist#getCurrentSong()
      */
     public Song getCurrentSong(){
-        try {
-            return this.getCurrentPlaylist().getCurrentSong();
-        }
-        catch (NullPointerException e){
-            return null;
-        }
+        return this.getCurrentPlaylist().getCurrentSong();
     }
 
     /**
@@ -219,7 +235,15 @@ public class PlaylistManager {
      * @return Returns an array-list which contains all {@link Playlist playlists} found at the {@link #rootPath}.
      * @see #playlists
      */
-    public ArrayList<Playlist> getPlaylists() {
+    public ObservableList<Playlist> getPlaylists() {
+        return playlistsObservable;
+    }
+
+    /**
+     * @return Returns an array-list which contains all {@link Playlist playlists} found at the {@link #rootPath}.
+     * @see #playlists
+     */
+    public ArrayList<Playlist> getPlaylistsArray() {
         return playlists;
     }
 
@@ -239,14 +263,6 @@ public class PlaylistManager {
 
     public ObservableList<Playlist> getObservablePlaylists(){
         return this.playlistsObservable;
-    }
-
-    /**
-     * @return Returns the {@linkplain #rootPath} where all {@link Playlist playlists}
-     * are/are to be saved.
-     */
-    public String getRootPath() {
-        return rootPath;
     }
 
 

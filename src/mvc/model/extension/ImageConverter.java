@@ -1,4 +1,4 @@
-package mvc.model.extension.m3u;
+package mvc.model.extension;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
@@ -14,7 +14,7 @@ public abstract class ImageConverter {
 
     //// IMAGE CONVERTER
     public static Image convertToJavaFXImage(byte[] raw) {
-        return convertToJavaFXImage(raw, Dim.W_COVER_IMG.doubleVal(), Dim.H_COVER_IMG.doubleVal());
+        return convertToJavaFXImage(raw, Dim.W_COVER_IMG.intVal(), Dim.H_COVER_IMG.intVal());
     }
 
     public static Image convertToJavaFXImage(byte[] raw, final int width, final int height) {

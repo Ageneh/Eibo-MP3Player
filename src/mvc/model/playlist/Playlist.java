@@ -2,7 +2,6 @@ package mvc.model.playlist;
 
 import exceptions.NotAvailableException;
 import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import misc.ANSI;
@@ -11,7 +10,6 @@ import mvc.model.extension.m3u.M3UProcessor;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Playlist {
 
@@ -64,6 +62,10 @@ public class Playlist {
         this.totalLength = 0;
         if(this.playlistFile.exists()){
             this.addSongs(new M3UProcessor().readSongs(path));
+            for (Song s : songs){
+                System.out.print(s.getTitle() + ", ");
+            }
+            System.out.println();
         }
         this.shufflePlaylist = null;
         this.playShuffle = false;
@@ -80,7 +82,9 @@ public class Playlist {
             if(song == null){
                 continue;
             }
+            System.out.println("buuuuuuu"+song.getTitle());
             this.songs.add(song);
+            System.out.println(songs.indexOf(song));
         }
         this.calcTotalLength();
     }
@@ -142,16 +146,19 @@ public class Playlist {
      * playing {@code false} will be returned.</br>
      */
     public boolean isInPlaylist(Song songToPlay){
+        for (Song song : songs) {
+            if(song.getTitle().equals(songToPlay.getTitle())) return true;
+        }
         if(!this.songs.contains(songToPlay)){
             return false;
         }
         else{
+            return true;
 //            System.out.printf("CONTAINS------------------>>>>>>>>>>><");
 //            this.setCurrentSongIndx(
 //                    this.songs.indexOf(songToPlay)
 //            );
         }
-        return true;
     }
 
     /**
@@ -257,48 +264,15 @@ public class Playlist {
     /////////////////////// GETTERS
 
     /**
-     * Setter for setting the {@literal currentSongIndx}.
-     * @param val The given {@link Integer} value will be added onto the {@literal currentSongIndx}.
-     *            Depending on the given {@param val} and the size of the {@link Playlist} the
-     *            argument and {@literal currentSongIndx} will added together.
-     */
-    public void setCurrentSongIndx(int val){
-        if(val >= 0 && val < this.songs.size()) {
-            this.currentSongIndx = val;
-        }
-        else{
-            this.currentSongIndx = 0;
-        }
-    }
-
-    /**
-     * {@link #setCurrentSongIndx(int)} Only difference is that in this case a {@link Song} object is given.
-     * @param song The song which is to be set as the new {@link Song current Song}.
-     * @return Returns a boolean which says whether the given {@link Song} has been set as the current or not.
-     */
-    public boolean setCurrentSong(Song song){
-        if(this.isInPlaylist(song) && !this.isCurrentSong(song)){
-            this.currentSongIndx = this.songs.indexOf(song);
-            if(playShuffle){
-                this.currentSongIndx = this.shufflePlaylist.indexOf(
-                        this.currentSongIndx
-                );
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * @param song The {@link Song} of which its index is to be found.
      * @return Returns the index of the given {@link Song}. Will be {@value -1} if the {@link Song}
      * is not part of the {@link Playlist}.
      */
-    public int getSongIndex(Song song){
+    int getSongIndex(Song song){
         return this.songs.indexOf(song);
     }
 
-    public long getTotalLength(){
+    long getTotalLength(){
         return this.totalLength;
     }
 
@@ -315,7 +289,56 @@ public class Playlist {
      * @return Returns a {@link Song} object.
      */
     public Song getCurrentSong(){
-        return this.songs.get(currentSongIndx);
+        ANSI.RED.println(title + " SIZE: " + songs.size());
+        try {
+            return this.songs.get(currentSongIndx);
+        }
+        catch (Exception e){
+            System.out.println();
+            return null;
+        }
+    }
+
+    public ArrayList<Song> getSongsObservable(){
+//        ObservableList<Song> songs = FXCollections.observableList(this.songs);
+        return (songs);
+    }
+
+
+    /////////////////////// SETTERS
+    // are only accessible via the playlistmanager
+
+    /**
+     * Setter for setting the {@literal currentSongIndx}.
+     * @param val The given {@link Integer} value will be added onto the {@literal currentSongIndx}.
+     *            Depending on the given {@param val} and the size of the {@link Playlist} the
+     *            argument and {@literal currentSongIndx} will added together.
+     */
+    void setCurrentSongIndx(int val){
+        if(val >= 0 && val < this.songs.size()) {
+            this.currentSongIndx = val;
+        }
+        else{
+            this.currentSongIndx = 0;
+        }
+    }
+
+    /**
+     * {@link #setCurrentSongIndx(int)} Only difference is that in this case a {@link Song} object is given.
+     * @param song The song which is to be set as the new {@link Song current Song}.
+     * @return Returns a boolean which says whether the given {@link Song} has been set as the current or not.
+     */
+    boolean setCurrentSong(Song song){
+        if(this.isInPlaylist(song) || this.isCurrentSong(song)){
+            this.currentSongIndx = this.songs.indexOf(song);
+            if(playShuffle){
+                this.currentSongIndx = this.shufflePlaylist.indexOf(
+                        this.currentSongIndx
+                );
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -324,7 +347,7 @@ public class Playlist {
      * @return Returns the new {@link Song current song}.
      * @throws NotAvailableException
      */
-    public Song setNext(int val) throws NotAvailableException {
+    Song setNextSong(int val) throws NotAvailableException {
         if(playShuffle){
             if(this.shuffleIndex + val >= 0
                     && this.shuffleIndex + val <= this.songs.size()) {
@@ -333,7 +356,7 @@ public class Playlist {
             }
 //            else{
 //                this.shuffle();
-//                this.setNext(val);
+//                this.setNextSong(val);
 //            }
         }
         else if(currentSongIndx + val >= 0
@@ -344,11 +367,6 @@ public class Playlist {
             throw new NotAvailableException();
         }
         return this.songs.get(currentSongIndx);
-    }
-
-    public SimpleListProperty<Song> getSongsObservable(){
-        ObservableList<Song> songs = FXCollections.observableList(this.songs);
-        return new SimpleListProperty<>(songs);
     }
 
 }

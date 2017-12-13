@@ -3,6 +3,8 @@ package mvc.model.playlist;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
+import javafx.beans.property.SimpleLongProperty;
+import misc.TimeConverter;
 import mvc.model.extension.enums.Filetype;
 import mvc.model.extension.enums.StandardValues;
 
@@ -11,7 +13,7 @@ import java.io.IOException;
 
 /**
  * A class for a mp3 file.
- * <br>Saves specific metadata such as title, album, cover image, length and filepath of a mp3 file.</br>
+ * <br>Saves specific metadata such as title, album, cover image, lengthMillis and filepath of a mp3 file.</br>
  * <br>This class extends {@link SongAssets}.</br>
  */
 public class Song extends SongAssets {
@@ -35,6 +37,7 @@ public class Song extends SongAssets {
      * absolute path then is extracted.</br>
      */
     private String path;
+    private String lengthConverted;
     private long lengthMillis;
     /**
      * Save a the cover image data in a byte-array.
@@ -65,6 +68,7 @@ public class Song extends SongAssets {
             this.title = mp3File.getId3v2Tag().getTitle();
             this.artist = mp3File.getId3v2Tag().getArtist();
             this.setAlbumCover();
+            this.lengthConverted = TimeConverter.setTimeFormatStd(this.lengthMillis);
         } catch (InvalidDataException e) {
             e.printStackTrace();
         } catch (UnsupportedTagException e) {
@@ -86,11 +90,19 @@ public class Song extends SongAssets {
     /////////////////////// GETTERS
 
     /**
-     * Getter for the total length of {@link Song} in milliseconds.
+     * Getter for the total lengthMillis of {@link Song} in milliseconds.
      * @return Returns a long value.
      */
     public long getLengthMillis(){
         return this.lengthMillis;
+    }
+
+    /**
+     * Getter for the total lengthMillis of {@link Song} in milliseconds.
+     * @return Returns a long value.
+     */
+    public SimpleLongProperty getLengthMillisProp(){
+        return new SimpleLongProperty(this.lengthMillis);
     }
 
     /**
@@ -142,6 +154,9 @@ public class Song extends SongAssets {
         return this.coverImg;
     }
 
+    public String getLengthConverted() {
+        return lengthConverted;
+    }
 
     /////////////////////// SETTERS
 
@@ -154,7 +169,7 @@ public class Song extends SongAssets {
         if(mp3File.getId3v2Tag().getAlbumImage() != null){
             this.coverImg = mp3File.getId3v2Tag().getAlbumImage();
         }
-        else /*if(this.coverImg == null || this.coverImg != null && this.coverImg.length < 1)*/{
+        else /*if(this.coverImg == null || this.coverImg != null && this.coverImg.lengthMillis < 1)*/{
             this.coverImg = super.getSongCover();
         }
     }

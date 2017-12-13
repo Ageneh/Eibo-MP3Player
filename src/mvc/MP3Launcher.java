@@ -1,6 +1,8 @@
 package mvc;
 
 import javafx.application.Application;
+import javafx.concurrent.Task;
+import javafx.stage.Stage;
 import misc.ANSI;
 import mvc.model.extension.enums.StandardValues;
 import mvc.view.StartupView;
@@ -19,31 +21,36 @@ public class MP3Launcher {
 
     /**
      * The main constructor. Will call its init method and uses the arguments - handed
-     * down from the main - to start the {@link StartupView}.
+     * down from the main - to show the {@link StartupView}.
      * @param args The initial arguments handed down from the main.
      */
     public MP3Launcher(String[] args){
-        this.init();
+//        StartupView show = new StartupView();
+        System.out.println("Started background");
         Application.launch(StartupView.class, args);
+        System.out.println("ended background");
+
+        System.out.println("Started init");
+        this.init();
     }
 
     /**
-     * Will run a small check on start of {@link MP3Launcher}.
+     * Will run a small check on show of {@link MP3Launcher}.
      */
     public void init() {
-        System.out.print("\n***********************************************\nChecking ");
+        ANSI.GREEN.println("\n***********************************************\nChecking ");
         int count = (int)(Math.random() * 5 + 20);
         for(int i = 0; i < count; i++){
             System.out.print(".");
             try {
-                Thread.currentThread().sleep(50 + (int)(Math.random() * 50));
+                Thread.currentThread().sleep(50 + (int)(Math.random()) * (int)(Math.random() * 100 + 35));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
         System.out.println();
         this.checkFolder();
-        System.out.println("***********************************************\n");
+        ANSI.GREEN.println("***********************************************\n");
     }
 
     /**
@@ -57,14 +64,13 @@ public class MP3Launcher {
         playlistDir = new File(StandardValues.STD_PLAYLIST_ROOT.getString());
 
         if(playlistDir.exists() && playlistDir.isDirectory()){
-            System.out.println(ANSI.GREEN.colorize("Playlist folder \""+ playlistDir.getAbsolutePath() +"\" exists."));
+            ANSI.GREEN.println("Playlist folder \""+ playlistDir.getAbsolutePath() +"\" exists.");
         }
         else{
             playlistDir.mkdir();
-            System.out.println(ANSI.YELLOW.colorize("Playlist folder \"" + StandardValues.TEMP_PLIST_TITLE.getString()
-                    + "\" has been created."));
-            System.out.println(ANSI.YELLOW.colorize("From now on, you can find all your playlists, in this folder:"));
-            System.out.println(ANSI.YELLOW.colorize("\"" + playlistDir.getAbsolutePath()));
+            ANSI.YELLOW.println("Playlist folder \"" + StandardValues.TEMP_PLIST_TITLE.getString() + "\" has been created.");
+            ANSI.YELLOW.println("From now on, you can find all your playlists, in this folder:");
+            ANSI.YELLOW.println("\"" + playlistDir.getAbsolutePath());
         }
     }
 }
