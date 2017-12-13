@@ -15,7 +15,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import mvc.StandardValues;
+import misc.ANSI;
+import mvc.model.extension.enums.StandardValues;
 import mvc.model.extension.enums.Filetype;
 import mvc.view.enums.Dim;
 
@@ -25,6 +26,8 @@ import java.util.Observable;
 import java.util.Observer;
 
 public class AddPlaylistView extends Application {
+
+    private final double MIN_OPACITY = 0.3;
 
     private FlowPane root;
     private Label fileText;
@@ -38,6 +41,8 @@ public class AddPlaylistView extends Application {
     private Button load;
     private VBox vertical;
 
+    private boolean isStarted = false;
+
     private ArrayList<String> filepaths;
 
     private Stage stage;
@@ -47,74 +52,82 @@ public class AddPlaylistView extends Application {
     }
 
     public AddPlaylistView(){
+        ANSI.YELLOW.println("Drag and drop view created.");
         this.observable = new PlaylistViewObservable();
         this.title = new SimpleStringProperty("");
         this.stage = new Stage();
         this.filepaths = new ArrayList<>();
     }
 
-    public void start(){
+    public void show(){
         this.start(this.stage);
     }
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Add New Playlist");
-        primaryStage.setResizable(false);
-        primaryStage.setAlwaysOnTop(true);
-        primaryStage.setOnCloseRequest(
-                event -> primaryStage.close()
+        Label playlistTitle = new Label("Set Playlist title:");
+        playlistTitle.setId("mainLabel");
+        playlistTitle.setPadding(
+                new Insets(0, 20, 0, 0)
         );
 
         TextField titleField = new TextField();
         titleField.setPrefColumnCount(15);
+        titleField.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-border-radius: 3pt; -fx-border-color: rgba(0,0,0,0.51);"
+        );
         titleField.setOnAction(
                 event -> {
                     title.set(titleField.getText());
                 }
         );
 
-        Text playlistTitle = new Text("Set Playlist title:");
-        playlistTitle.setId("mainLabel");
-
-        this.load = new Button("Create");
-        this.load.setOpacity(0.3);
-//        this.load.setStyle("-fx-background-color: #dddddd; -fx-text-fill: #cccccc;");
+        this.load = new Button("Create Playlist");
+        this.load.setOpacity(MIN_OPACITY);
+        this.load.setDisable(true);
         this.load.setOnMouseClicked(
                 event -> {
-                    if(filepaths.size() > 0) {
+                    ANSI.YELLOW.println("Drag and drop view closing.");
+                    if(hasSongs()) {
                         title.set(titleField.getText());
                         observable.notifyObservers();
-                        primaryStage.close();
+                        primaryStage.hide();
                     }
                 }
         );
 
-        this.supportedMessage = new Label(StandardValues.DRAG_MSG_STD.getVal());
+        this.supportedMessage = new Label(StandardValues.DRAG_MSG_STD.getString());
+        this.supportedMessage.setMaxWidth(Dim.W_ADDPLAYLIST_WINDOW.intVal() - 20);
         this.supportedMessage.setWrapText(true);
 
         this.files = new ArrayList<>();
 
-        HBox inputLine = new HBox(playlistTitle, titleField, load);
-        inputLine.setPadding(
-                new Insets(Dim.PAD_PLAYLIST_WINDOW.doubleVal(),
-                        0,
-                        Dim.PAD_PLAYLIST_WINDOW.doubleVal(),
-                        0)
+        HBox inputLine = new HBox(playlistTitle, titleField);
+        FlowPane iL = new FlowPane(playlistTitle, titleField);
+        inputLine.setStyle(
+                "-fx-background-color: rgba(107,107,107,0.2);" +
+                "-fx-background-radius: 0;"
         );
-        inputLine.setAlignment(Pos.CENTER);
+        inputLine.setPadding(
+                new Insets(10, 0, 10, 0)
+        );
+        inputLine.setAlignment(Pos.BASELINE_LEFT);
 
         this.listView = new ListView<>();
+        this.listView.setStyle(
+                "-fx-background-color: transparent;"
+        );
         this.listView.setPrefHeight(
-                Dim.H_PLAYLIST_WINDOW.doubleVal() -
+                Dim.H_ADDPLAYLIST_WINDOW.intVal() -
                         inputLine.getBoundsInParent().getHeight() -
-                        (2* Dim.PAD_PLAYLIST_WINDOW.doubleVal())
+                        (2* Dim.PAD_PLAYLIST_WINDOW.intVal())
         );
         this.listView.setEditable(true);
 
-        this.vertical = new VBox(inputLine, listView, supportedMessage);
+        this.vertical = new VBox(inputLine, listView, supportedMessage, load);
         this.vertical.setFillWidth(true);
-        this.vertical.setAlignment(Pos.CENTER);
+        this.vertical.setAlignment(Pos.TOP_CENTER);
 
         this.root = new FlowPane(vertical);
 
@@ -122,22 +135,33 @@ public class AddPlaylistView extends Application {
 
         Scene scene = new Scene(
                 this.root,
-                Dim.W_PLAYLIST_WINDOW.doubleVal(),
-                Dim.H_PLAYLIST_WINDOW.doubleVal()
+                Dim.W_ADDPLAYLIST_WINDOW.intVal(),
+                Dim.H_ADDPLAYLIST_WINDOW.intVal()
         );
 
         this.listView.maxHeightProperty().bind(
                 scene.heightProperty().subtract(
                         inputLine.getBoundsInParent().getHeight() +
-                                (4* Dim.PAD_PLAYLIST_WINDOW.doubleVal()))
+                                (4* Dim.PAD_PLAYLIST_WINDOW.intVal()))
         );
         this.listView.prefWidthProperty().bind(
                 scene.widthProperty().subtract(
-                        2* Dim.PAD_PLAYLIST_WINDOW.doubleVal())
+                        2* Dim.PAD_PLAYLIST_WINDOW.intVal())
         );
 
+        primaryStage.setTitle("Add New Playlist");
+        primaryStage.setResizable(false);
+        primaryStage.setAlwaysOnTop(true);
+        primaryStage.setOnCloseRequest(
+                event -> {
+                    ANSI.YELLOW.println("Drag and drop view closing.");
+                    observable.notifyObservers();
+                    primaryStage.hide();
+                    primaryStage.close();
+                }
+        );
         primaryStage.setScene(scene);
-        primaryStage.show();
+        primaryStage.showAndWait();
     }
 
     /**
@@ -205,15 +229,14 @@ public class AddPlaylistView extends Application {
 
     }
 
-    public ArrayList<File> getFiles() {
-        return files;
-    }
-
     public String getTitle(){
         return this.title.get();
     }
 
-    private boolean isStarted = false;
+    public ArrayList<File> getFiles() {
+        return files;
+    }
+
     private void setListeners(){
         root.setOnDragOver(
                 event -> {
@@ -227,11 +250,11 @@ public class AddPlaylistView extends Application {
                     boolean success = false;
                     if(isStarted){
                         System.out.println("DRAG DROP");
-                        root.setStyle("-fx-background-color: #f4f4f4;");
                         DnD(event);
                         if(files.size() > 0) {
                             success = true;
                             isStarted = false;
+                            load.setDisable(false);
                             load.setOpacity(1);
 //                            load.setStyle("-fx-background-color: rgba(180,237,176,0.67); -fx-text-fill: #239421;" +
 //                                    "-fx-border-color: #239421; -fx-border-width: 2pt; -fx-border-style: inset;");
@@ -244,7 +267,7 @@ public class AddPlaylistView extends Application {
         root.setOnDragEntered(
                 event -> {
                     System.out.println("DRAG ENTER");
-                    root.setStyle("-fx-background-color: #eeeeee;");
+                    root.setStyle("-fx-background-color: #7ccde5;");
                     event.consume();
                 }
         );

@@ -10,7 +10,7 @@
     -fx-background-color: #dddddd;
 }
 
-#play, #pause, #stop, #next, #prev, #mute{
+#play, #pause, #stop, #next, #prev, #mute, #shuffle{
     -fx-text-fill: transparent;
     -fx-background-color: transparent;
     -fx-padding: 5pt 10pt 6pt 10pt;
@@ -22,31 +22,35 @@
 }
 
 #play{
-    -fx-background-image: url("/icons/play.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons/play.png");
 }
 
 #pause{
-    -fx-background-image: url("/icons/pause.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons//pause.png");
 }
 
 #next{
-    -fx-background-image: url("/icons/next.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons//next.png");
 }
 
 #prev{
-    -fx-background-image: url("/icons/prev.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons//prev.png");
 }
 
 #stop{
-    -fx-background-image: url("/icons/stop.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons//stop.png");
 }
 
 #mute{
-    -fx-background-image: url("/icons/unmute.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons//unmute.png");
+}
+
+#shuffle{
+    -fx-background-image: url("/mvc/view/stylesheets/icons//shuffle.png");
 }
 
 #newPlaylist{
-    -fx-background-image: url("/icons/playlist.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons//playlist.png");
 }
 
 #leftPanelHeaderLabel{

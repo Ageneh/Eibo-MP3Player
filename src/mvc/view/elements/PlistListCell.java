@@ -22,9 +22,9 @@ public class PlistListCell extends GridPane {
         this.plisstTitle.setId("playlistTitle");
         this.plisstTitle.setStyle("-fx-font: \"SF Pro Display Medium\";\n" +
                 "    -fx-font-style: oblique;");
-        this.coverSm = new ImageView(new Image("/playlist.png"));
+        this.coverSm = new ImageView(new Image("/mvc/view/stylesheets/icons/playlist.png"));
         this.coverSm.setPreserveRatio(true);
-        this.coverSm.setFitWidth(Dim.H_CELL.doubleVal() - 10);
+        this.coverSm.setFitWidth(Dim.H_CELL.intVal() - 10);
         this.coverSm.setSmooth(true);
         this.coverSm.setOpacity(0.5);
         this.songCountLabel = new Label();

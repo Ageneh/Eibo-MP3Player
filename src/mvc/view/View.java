@@ -6,7 +6,7 @@ import javafx.stage.Stage;
 import java.util.Observable;
 
 /**
- * This class will start the visual mp3-player.
+ * This class will show the visual mp3-player.
  */
 public abstract class View extends Observable {
 
@@ -21,11 +21,11 @@ public abstract class View extends Observable {
 //        //// SETTING UP STAGE AND ROOT PANE
 //        this.root = new BorderPane();
 //        this.root.setMinSize(
-//                Dim.MIN_W_SCREEN.doubleVal(),
-//                Dim.MIN_H_SCREEN.doubleVal()
+//                Dim.MIN_W_SCREEN.intVal(),
+//                Dim.MIN_H_SCREEN.intVal()
 //        );
 //        this.baseScene = new Scene(this.root);
-//        this.start = new StartupView();
+//        this.show = new StartupView();
         this.start = new StartupView();
     }
 //
@@ -50,8 +50,8 @@ public abstract class View extends Observable {
 ////    }
 //
 //    @Override
-//    public void start(Stage primaryStage) throws Exception {
-//        this.start.start(primaryStage);
+//    public void show(Stage primaryStage) throws Exception {
+//        this.show.show(primaryStage);
 //    }
 
     private class ViewApplication extends Application{
