@@ -53,6 +53,7 @@ public class StartupView extends Application implements Observer {
     private GridPane leftPanelHeader;
     private ListView<PlaylistViewCell> playlistListView;
     private ObservableList<Playlist> allPlaylists;
+    private SimpleObjectProperty<Playlist> selectedPlaylist;
 
     private PlaylistSongCover currentCoverImg;
     private TableView<Song> currentSongsTable;
@@ -116,7 +117,7 @@ public class StartupView extends Application implements Observer {
                 Dim.MIN_H_SCREEN.intVal()
         );
 
-        ////// LEFT CONTROLS
+        ////// LEFT PANEL AND CONTROLS
         this.setUpLeftPanel();
 
         //// SETTING UP SCENE
@@ -124,7 +125,7 @@ public class StartupView extends Application implements Observer {
                 this.setUpRightView()
         );
 
-        ////// BOTTOM CONTROLS
+        ////// BOTTOM PANEL AND CONTROLS
         Pane bottom = setUpBottom();
         this.root.setBottom(bottom);
         bottom.setId("controlBtnPane");
@@ -192,24 +193,55 @@ public class StartupView extends Application implements Observer {
                     );
                 }
         );
-        playlistListView.setOnMouseClicked(
-                event -> {
-                    controller.setSelectedPlaylist(
-                            playlistListView.getSelectionModel().getSelectedItem().getPlaylist()
-                    );
-                    ANSI.GREEN.println(controller.getCurrentPlaylist().get().getTitle());
-                    updateSongTable(
-                            playlistListView.getSelectionModel().getSelectedItem().getPlaylist()
-                    );
+        playlistListView.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> {
+                    if(newValue != null){
+                        ANSI.YELLOW.println("NEW PLAYLIST " + newValue.getTitle());
+                        this.selectedPlaylist.set(
+                                newValue.getPlaylist()
+                        );
+                        ANSI.GREEN.println(controller.getCurrentPlaylist().get().getTitle());
+                        updateSongTable(
+                                newValue.getPlaylist()
+                        );
+                    }
                     playlistListView.refresh();
                 }
         );
+//        playlistListView.setOnMouseClicked(
+//                event -> {
+//                    this.selectedPlaylist.set(
+//                            playlistListView.getSelectionModel().getSelectedItem().getPlaylist()
+//                    );
+//                    ANSI.GREEN.println(controller.getCurrentPlaylist().get().getTitle());
+//                    updateSongTable(
+//                            this.selectedPlaylist.get()
+//                    );
+//                    playlistListView.refresh();
+//                }
+//        );
+//        currentSongsTable.getSelectionModel().selectedItemProperty().addListener(
+//                (observable, oldValue, newValue) -> {
+//                    if(!newValue.equals(oldValue)){
+//                        this.currentSong.set(
+//                                newValue
+//                        );
+//                    }
+//                }
+//        );
         currentSongsTable.setOnMouseClicked(
                 (MouseEvent event) ->  {
                     if(event.getClickCount() == 2) {
-                        // load the playlist and its first song
-                        controller.playCurrentSong(
+                        this.currentSong.set(
                                 currentSongsTable.getSelectionModel().getSelectedItem()
+                        );
+                        // load the playlist and its first song
+                        ANSI.MAGENTA.println("ANDERS ANDERS ANDERS ANDERS");
+                        System.out.println(currentSong.get().getTitle());
+                        ANSI.MAGENTA.println("ANDERS ANDERS ANDERS ANDERS");
+                        controller.playCurrentSong(
+                                selectedPlaylist.get(),
+                                currentSong.get()
                         );
                         ANSI.MAGENTA.println("CLICKY _> " + controller.getCurrentSong().get().getTitle());
                         currentSongsTable.refresh();
@@ -219,14 +251,14 @@ public class StartupView extends Application implements Observer {
     }
 
     private void setUpLeftPanel(){
-        allPlaylists = this.controller.getPlaylistData();
+        this.allPlaylists = this.controller.getPlaylistData();
 
         Label leftPanelHeaderLabel = new Label("Meine Playlists");
         leftPanelHeaderLabel.setPadding(new Insets(0, 0, 0, Dim.PAD_SIDE_LIST.intVal()));
         leftPanelHeaderLabel.setId("leftPanelHeaderLabel");
 
         Label playlistCount = new Label();
-        IntegerBinding plistCount = Bindings.size(allPlaylists);
+        IntegerBinding plistCount = Bindings.size(this.allPlaylists);
         playlistCount.setPadding(new Insets(0, Dim.PAD_SIDE_LIST.intVal(), 0, 0));
         playlistCount.setAlignment(Pos.CENTER_RIGHT);
         playlistCount.textProperty().bind(StringBinding.stringExpression(plistCount));
@@ -280,6 +312,13 @@ public class StartupView extends Application implements Observer {
             cellBox.setId("cellbox");
             this.playlistListView.getItems().add(cellBox.getGrid());
         }
+
+        this.playlistListView.getSelectionModel().select(0);
+        this.playlistListView.getFocusModel().focus(0);
+        this.playlistListView.scrollTo(0);
+        this.selectedPlaylist = new SimpleObjectProperty<>(
+                this.playlistListView.getSelectionModel().getSelectedItem().getPlaylist()
+        );
 //        this.playlistListView.getSelectionModel().select(0);
 //        this.controller.setSelectedPlaylist(
 //                this.playlistListView.getSelectionModel().getSelectedItem().getPlaylist()
@@ -303,6 +342,11 @@ public class StartupView extends Application implements Observer {
         length.setCellValueFactory(new PropertyValueFactory<>("lengthConverted"));
         this.currentSongsTable.getColumns().addAll(title, artist, length);
 
+        this.currentSongsTable.setPrefHeight(
+                Dim.MIN_H_SCREEN.intVal() -
+                        this.currentCoverImg.getViewport().getHeight()
+        );
+
 //        this.updateSongTable(null);
     }
 
@@ -313,12 +357,17 @@ public class StartupView extends Application implements Observer {
     private void updateSongTable(Playlist playlist){
 //        this.currentSongsTable = new TableView<>();
 
-        this.currentSongsTable.setPrefHeight(
-                Dim.MIN_H_SCREEN.intVal() -
-                this.currentCoverImg.getViewport().getHeight()
-        );
+        this.currentSongsTable.getItems().setAll(
 
-        this.currentSongsTable.setItems(controller.getCurrentSongs());
+                        playlist.getSongs()
+
+        );
+        this.currentSongsTable.getFocusModel().focus(
+                this.currentSongsTable.getItems().indexOf(this.currentSong.get())
+        );
+        this.currentSong.set(
+                this.currentSongsTable.getSelectionModel().getSelectedItem()
+        );
         this.currentSongsTable.refresh();
     }
 
@@ -385,7 +434,7 @@ public class StartupView extends Application implements Observer {
         Label currPos = new Label();
         this.currentPosProp = new SimpleStringProperty();
         this.currentPosPropVal = new SimpleLongProperty(
-                controller.getCurrentSongPosition().get()
+                controller.getCurrentSongPosition()
         );
         currentPosProp.bind(TimeConverter.setTimeFormatStd(currentPosPropVal));
         currPos.textProperty().bindBidirectional(this.currentPosProp);
@@ -490,7 +539,7 @@ public class StartupView extends Application implements Observer {
     private void updateBottom(){
 //        System.out.printf("-- ");
         this.currentPosPropVal.set(
-                this.controller.getCurrentSongPosition().get()
+                this.controller.getCurrentSongPosition()
         );
         this.currentTotalLength.set(
                 this.controller.getCurrentSongLength().get()
