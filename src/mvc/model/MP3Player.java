@@ -617,6 +617,7 @@ public class MP3Player extends Observable {
         }
 
         /**
+         *
          * Is called so that the {@link #modelThreader current thread} waits.
          * <br>Invoke {@link Thread#notify()}.</br>
          */
