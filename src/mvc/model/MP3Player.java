@@ -68,8 +68,6 @@ public class MP3Player extends Observable {
         thread = new Thread(this.modelThreader, "Player_Thread");
         thread.setDaemon(true);
         thread.start();
-
-        ANSI.MAGENTA.println("2342334525 --- " + plistManager.getCurrentSong().getTitle());
     }
 
 
@@ -78,7 +76,6 @@ public class MP3Player extends Observable {
     @Override
     public void notifyObservers() {
         super.notifyObservers();
-        ANSI.GREEN.println("–––> +");
     }
 
     /**
@@ -89,7 +86,7 @@ public class MP3Player extends Observable {
      * <br>If it happens to be the case that the {@link #player} should be {@code null} then {@link #load()}
      * will be called.</br>
      */
-    public synchronized void play(){
+    public void play(){
         try {
             if(!this.isPlaying()) {
                 // if the current song is not playing
@@ -124,7 +121,7 @@ public class MP3Player extends Observable {
      * the positional value of {@link Song song}.
      * @param song A song which is to be played.
      */
-    public synchronized void play(Song song){
+    public void play(Song song){
         try{
 //            if(plistManager.isCurrentSong(song)){
 //                if(!this.isPlaying()){
@@ -162,7 +159,7 @@ public class MP3Player extends Observable {
         }
     }
 
-    public synchronized void play(Playlist playlist, Song song){
+    public void play(Playlist playlist, Song song){
         this.load(playlist);
         this.play(song);
     }
@@ -170,7 +167,7 @@ public class MP3Player extends Observable {
     /**
      * Will pause current music playback.
      */
-    public synchronized void pause(){
+    public void pause(){
         pause = pause ? false : true;
         try {
             if (pause) {
@@ -195,10 +192,9 @@ public class MP3Player extends Observable {
     /**
      * Will stop music playback through calling {@link SimpleMinim#stop()}.
      */
-    public synchronized void stop(){
+    public void stop(){
         if(pause) {
-            modelThreader.go();
-            modelThreader.reset();
+            modelThreader.resume();
         }
         stop = true;
         minim.stop();
@@ -228,7 +224,6 @@ public class MP3Player extends Observable {
      * {@link PlaylistManager#getCurrentPlaylist() current playlist}.
      */
     public synchronized void load(){
-        ANSI.BLUE.println("---> " + plistManager.getCurrentSong().getTitle());
         this.load(plistManager.getCurrentSong());
     }
 
@@ -237,15 +232,15 @@ public class MP3Player extends Observable {
      * @param song The {@link Song} which is to be loaded in the {@link #player}.
      */
     public synchronized void load(Song song){
-        if(plistManager.setCurrentSong(song)) {
+        if(plistManager.hasSong(song)) {
             this.stop();
             ANSI.RED.println("=== STOPPED");
+
+            plistManager.setCurrentSong(song);
 //            plistManager.getCurrentPlaylist().setCurrentSong(song);
             player = minim.loadMP3File(plistManager.getCurrentSong().getPath());
             ANSI.RED.println("=== LOADED " +plistManager.getCurrentSong().getTitle());
             setVolume(currentVol);
-            setChanged();
-            notifyObservers();
         }
     }
 
@@ -302,8 +297,8 @@ public class MP3Player extends Observable {
      * @param val The amount of {@link Song songs} which are to be skipped.
      * <br> Is of type {@link Skip#NEXT} or {@link Skip#PREVIOUS}.</br>
      */
-    private synchronized void skipSong(Skip val){
-        if(plistManager.hasNext()){
+    private void skipSong(Skip val){
+        if(plistManager.hasNext(val.getSkipVal())){
             skip = true;
             if(pause){
                 load();
@@ -311,9 +306,9 @@ public class MP3Player extends Observable {
             }
             plistManager.setNextSong(val.getSkipVal());
             load();
-            play();
-            ANSI.BLUE.println(plistManager.getCurrentSong().getTitle());
-            modelThreader.resume();
+                modelThreader.resume();
+            synchronized (modelThreader) {
+            }
         }
         else{
             ANSI.CYAN.print("Playing last song. ");
@@ -509,12 +504,13 @@ public class MP3Player extends Observable {
             while(plistManager.hasNext()){
                 //// PLAY SONG AND NOTIFY OBSERVERS
                 if(skip){
-                    System.out.println("SKIPPED");
+                    System.out.println("SKIPPING");
                     waiter();
+                    System.out.println("RESUME SK");
                 }
                 else if(stop || !(!pause && !skip)){
-                    System.out.println(" player/minim is stopped via stop()" + getCurrentSong().getTitle());
                     waiter();
+                    System.out.println("RESUME ST");
                 }
                 else if(!skip && !pause){
                     setChanged();
@@ -531,6 +527,10 @@ public class MP3Player extends Observable {
                 setChanged();
                 notifyObservers();
 
+                System.out.println("NAJAJAJAJAJAJAJAJAJAJAJAJAJAJ");
+                System.out.println("NAJAJAJAJAJAJAJAJAJAJAJAJAJAJ");
+                System.out.println("NAJAJAJAJAJAJAJAJAJAJAJAJAJAJ");
+
                 reset();
                 last = -1;
                 while (player.isPlaying()){
@@ -538,9 +538,7 @@ public class MP3Player extends Observable {
                     posMod =  songPosition % Interval.REFRESH_RATE.getVal();
                     if(posMod <= Interval.LATENCY.getVal() && posMod >= 0 && posMod != last){
                         last = posMod;
-
                         ANSI.CYAN.println("UP PLAY");
-
                         setChanged();
                         notifyObservers();
                     }
@@ -593,10 +591,12 @@ public class MP3Player extends Observable {
         /**
          * Will resume playback through invoking {@link SimpleAudioPlayer#play()} and resetting all flags.
          */
-        private void resume(){
-            setChanged();
+        private synchronized void resume(){
             reset();
             player.play();
+            notifyAll();
+            System.out.println("notified");
+            setChanged();
             notifyObservers();
         }
 
@@ -620,13 +620,16 @@ public class MP3Player extends Observable {
          * Is called so that the {@link #modelThreader current thread} waits.
          * <br>Invoke {@link Thread#notify()}.</br>
          */
-        private synchronized void waiter(){
-            setChanged();
-            notifyObservers();
-            try {
-                this.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        private void waiter(){
+            synchronized (modelThreader) {
+                setChanged();
+                System.out.println("WAIT");
+                notifyObservers();
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

@@ -67,11 +67,7 @@ public class PlaylistManager {
                 return;
             } else {
                 this.getCurrentPlaylist().reset();
-                ANSI.YELLOW.println(currentPlistIndex + "");
-                ANSI.YELLOW.println(this.getCurrentPlaylist().getTitle());
                 this.currentPlistIndex = this.playlists.indexOf(playlist);
-                ANSI.YELLOW.println(currentPlistIndex + "");
-                ANSI.YELLOW.println(this.getCurrentPlaylist().getTitle());
                 this.getCurrentPlaylist().reset();
                 this.setAllPlaylists();
             }
@@ -80,7 +76,6 @@ public class PlaylistManager {
             this.playlists.add(playlist);
             this.currentPlistIndex = this.playlists.indexOf(playlist);
             this.getCurrentPlaylist().reset();
-            ANSI.RED.println("???????>>>> ADDED PLAYLIST");
             this.setAllPlaylists();
         }
     }
@@ -124,11 +119,18 @@ public class PlaylistManager {
     }
 
     /**
-     * @return {@link Playlist#hasNext()}
+     * @return {@link Playlist#hasNext(int)}
      */
     public boolean hasNext(){
+        return hasNext(1);
+    }
+
+    /**
+     * @return {@link Playlist#hasNext(int)}
+     */
+    public boolean hasNext(int val){
         try {
-            return this.getCurrentPlaylist().hasNext();
+            return this.getCurrentPlaylist().hasNext(val);
         }
         catch (NullPointerException e){
             return false;
@@ -140,6 +142,10 @@ public class PlaylistManager {
      */
     public boolean isCurrentSong(Song songToPlay){
         return this.playlists.get(this.currentPlistIndex).isCurrentSong(songToPlay);
+    }
+
+    public boolean hasSong(Song song){
+        return this.getCurrentPlaylist().hasSong(song);
     }
 
 

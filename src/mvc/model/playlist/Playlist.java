@@ -62,10 +62,6 @@ public class Playlist {
         this.totalLength = 0;
         if(this.playlistFile.exists()){
             this.addSongs(new M3UProcessor().readSongs(path));
-            for (Song s : songs){
-                System.out.print(s.getTitle() + ", ");
-            }
-            System.out.println();
         }
         this.shufflePlaylist = null;
         this.playShuffle = false;
@@ -82,9 +78,7 @@ public class Playlist {
             if(song == null){
                 continue;
             }
-            System.out.println("buuuuuuu"+song.getTitle());
             this.songs.add(song);
-            System.out.println(songs.indexOf(song));
         }
         this.calcTotalLength();
     }
@@ -110,7 +104,7 @@ public class Playlist {
      * <br>Return is true, if the current {@link Playlist} is shuffled and
      * will be false if its in regular play.</br>
      */
-    public boolean toggleShuffle(){
+    boolean toggleShuffle(){
         this.playShuffle = this.playShuffle ? false : true;
 
         if(this.playShuffle){
@@ -145,7 +139,7 @@ public class Playlist {
      * songToPlay} is not part of the {@link Playlist}.</br><br>If the given {@link Song} is already
      * playing {@code false} will be returned.</br>
      */
-    public boolean isInPlaylist(Song songToPlay){
+    boolean isInPlaylist(Song songToPlay){
         for (Song song : songs) {
             if(song.getTitle().equals(songToPlay.getTitle())) return true;
         }
@@ -167,7 +161,7 @@ public class Playlist {
      * @return Returns a boolean which is true if the {@link Song song} is the {@literal currentSongIndx}
      * and false if not.
      */
-    public boolean isCurrentSong(Song song){
+    boolean isCurrentSong(Song song){
         if(this.getCurrentSong().equals(song)){
             return true;
         }
@@ -181,20 +175,20 @@ public class Playlist {
      * @return If the {@link Song current song} is not the last {@link Song} the return value is {@code true}.
      * Else {@code false} will be returned.
      */
-    public boolean hasNext(){
+    boolean hasNext(int val){
         if(playShuffle){
-            if(shuffleIndex < this.songs.size()){
+            if(shuffleIndex + val < this.songs.size() && shuffleIndex + val >= 0){
                 return true;
             }
         }
-        else if(currentSongIndx < this.songs.size()){
+        else if(currentSongIndx + val < this.songs.size() && currentSongIndx + val >= 0 ){
             return true;
         }
         return false;
     }
 
-    public ArrayList<Song> getSongs() {
-        return songs;
+    boolean hasSong(Song song){
+        return this.songs.contains(song);
     }
 
 
@@ -297,6 +291,10 @@ public class Playlist {
             System.out.println();
             return null;
         }
+    }
+
+    public ArrayList<Song> getSongs() {
+        return songs;
     }
 
     public ArrayList<Song> getSongsObservable(){
