@@ -20,16 +20,16 @@ public class PlistListCell extends GridPane {
         this.playlist = playlist;
         this.plisstTitle = new Label(playlist.getTitle());
         this.plisstTitle.setId("playlistTitle");
-        this.plisstTitle.setStyle("-fx-font: \"SF Pro Display Medium\";\n" +
+        this.plisstTitle.setStyle("-fx-font-family: \"SF Pro Display Medium\";\n" +
                 "    -fx-font-style: oblique;");
         this.coverSm = new ImageView(new Image("/mvc/view/stylesheets/icons/playlist.png"));
         this.coverSm.setPreserveRatio(true);
-        this.coverSm.setFitWidth(Dim.H_CELL.intVal() - 10);
+        this.coverSm.setFitWidth(Dim.H_LIST_CELL.intVal() - 10);
         this.coverSm.setSmooth(true);
         this.coverSm.setOpacity(0.5);
         this.songCountLabel = new Label();
         this.createSongLabel();
-        this.songCountLabel.setStyle("-fx-font: \"SF Pro Display Light\";\n" +
+        this.songCountLabel.setStyle("-fx-font-family: \"SF Pro Display Light\";\n" +
                 "    -fx-font-size: 10pt;\n");
         this.setupGrid();
     }

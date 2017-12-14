@@ -10,10 +10,10 @@
     -fx-background-color: #dddddd;
 }
 
-#play, #pause, #stop, #next, #prev, #mute, #shuffle{
+#play, #pause, #stop, #next, #prev, #mute, #shuffle, #newPlaylist{
     -fx-text-fill: transparent;
     -fx-background-color: transparent;
-    -fx-padding: 5pt 10pt 6pt 10pt;
+    -fx-padding: 10pt 10pt 10pt 10pt;
     -fx-label-padding: 5pt;
     -fx-background-size: 75% auto;
     -fx-background-repeat: no-repeat;
@@ -26,59 +26,64 @@
 }
 
 #pause{
-    -fx-background-image: url("/mvc/view/stylesheets/icons//pause.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons/pause.png");
 }
 
 #next{
-    -fx-background-image: url("/mvc/view/stylesheets/icons//next.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons/next.png");
 }
 
 #prev{
-    -fx-background-image: url("/mvc/view/stylesheets/icons//prev.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons/prev.png");
 }
 
 #stop{
-    -fx-background-image: url("/mvc/view/stylesheets/icons//stop.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons/stop.png");
 }
 
 #mute{
-    -fx-background-image: url("/mvc/view/stylesheets/icons//unmute.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons/unmute.png");
 }
 
 #shuffle{
-    -fx-background-image: url("/mvc/view/stylesheets/icons//shuffle.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons/shuffle.png");
+}
+
+.table-col{
+    -fx-alignment: CENTER-LEFT;
+}
+
+.table-view, .list-view{
+    -fx-grid-lines-visible: false;
+    -fx-table-cell-border-color: transparent;
+}
+
+#length_col {
+    -fx-alignment: CENTER-RIGHT;
 }
 
 #newPlaylist{
-    -fx-background-image: url("/mvc/view/stylesheets/icons//playlist.png");
+    -fx-background-image: url("/mvc/view/stylesheets/icons/add1.png");
+    -fx-background-size: 60% auto;
+}
+#newPlaylist:hover{
+    -fx-opacity: 1;
 }
 
 #leftPanelHeaderLabel{
     -fx-text-fill: black;
-    -fx-font-size: 16pt;
-    -fx-font-weight: 700;
-    -webkit-fx-font: "SF Pro Display Medium";
-    -moz-fx-font: "SF Pro Display Medium";
-    -ms-fx-font: "SF Pro Display Medium";
-    -o-fx-font: "SF Pro Display Medium";
-    -khtml-fx-font: "SF Pro Display Medium";
-    fx-font: "SF Pro Display Medium";
+    -fx-font-size: 13pt;
+    -fx-font-family: "SF Pro Display Regular";
 }
 
 #leftPanelHeader{
     -fx-padding: 0 0 15pt 0;
 }
 
-.slider{
-    -fx-min-width: 50pt;
-}
-
 .slider .track{
     -fx-background-color: #d2d2d2;
-    -fx-padding: 0.5em;
-    -fx-background-radius: 0;
-    -fx-border-style: none;
-    -fx-background-radius: 0;
+    -fx-padding: 0.25em;
+    -fx-border-radius: 100%;
 }
 
 .slider .thumb{

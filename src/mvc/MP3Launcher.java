@@ -1,8 +1,6 @@
 package mvc;
 
 import javafx.application.Application;
-import javafx.concurrent.Task;
-import javafx.stage.Stage;
 import misc.ANSI;
 import mvc.model.extension.enums.StandardValues;
 import mvc.view.StartupView;
@@ -26,12 +24,11 @@ public class MP3Launcher {
      */
     public MP3Launcher(String[] args){
 //        StartupView show = new StartupView();
+        System.out.println("Started init");
+        this.init();
         System.out.println("Started background");
         Application.launch(StartupView.class, args);
         System.out.println("ended background");
-
-        System.out.println("Started init");
-        this.init();
     }
 
     /**

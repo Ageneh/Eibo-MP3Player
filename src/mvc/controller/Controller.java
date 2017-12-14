@@ -36,7 +36,6 @@ public class Controller extends Observable {
 
         this.coverImg = model.get().getCurrentSong().getCover();
 
-
         //// OBSERVERS & VIEWS
         modelObserver = new ModelObserver();
         dndObserver = new DragAndDrogObserver();
@@ -77,6 +76,34 @@ public class Controller extends Observable {
     //////////////////////// MODEL COMMUNICATION
 
     /**
+     * Starts and shows the drag'n'drop view where the user is able to create {@link Playlist playlists}.
+     * @see AddPlaylistView
+     */
+    public void addSongs(){
+        smallWindow = new AddPlaylistView();
+        smallWindow.addObservers(dndObserver);
+        smallWindow.show();
+    }
+
+    public void loadPlaylist(Playlist selectedPlaylist){
+        this.model.get().load(selectedPlaylist);
+    }
+
+    /**
+     * {@link MP3Player#mute()}
+     */
+    public void mute(){
+        this.model.get().mute();
+    }
+
+    /**
+     * {@link MP3Player#pause()}
+     */
+    public void pause(){
+        this.model.get().pause();
+    }
+
+    /**
      * {@link MP3Player#play()}
      */
     public void play(){
@@ -90,32 +117,8 @@ public class Controller extends Observable {
         model.get().play(songToPlay);
     }
 
-    /**
-     * {@link MP3Player#pause()}
-     */
-    public void pause(){
-        this.model.get().pause();
-    }
-
-    /**
-     * {@link MP3Player#stop()}
-     */
-    public void stop(){
-        this.model.get().stop();
-    }
-
-    /**
-     * {@link MP3Player#mute()}
-     */
-    public void mute(){
-        this.model.get().mute();
-    }
-
-    /**
-     * {@link MP3Player#skip(Skip)}
-     */
-    public void skip(Skip val){
-        model.get().skip(val);
+    public void playCurrentSong(Playlist selectedPlaylist, Song song){
+        this.model.get().play(selectedPlaylist, song);
     }
 
     /**
@@ -126,13 +129,17 @@ public class Controller extends Observable {
     }
 
     /**
-     * Starts and shows the drag'n'drop view where the user is able to create {@link Playlist playlists}.
-     * @see AddPlaylistView
+     * {@link MP3Player#skip(Skip)}
      */
-    public void addSongs(){
-        smallWindow = new AddPlaylistView();
-        smallWindow.addObservers(dndObserver);
-        smallWindow.show();
+    public void skip(Skip val){
+        model.get().skip(val);
+    }
+
+    /**
+     * {@link MP3Player#stop()}
+     */
+    public void stop(){
+        this.model.get().stop();
     }
 
     /**
@@ -142,16 +149,8 @@ public class Controller extends Observable {
         this.model.get().toggleShuffle();
     }
 
-    public void loadPlaylist(Playlist selectedPlaylist){
-        this.model.get().load(selectedPlaylist);
-    }
-
-
-    /////////////////////// PUBLIC METHODS
-
-    private void notifyChanges(){
-        setChanged();
-        notifyObservers();
+    public void setPosition(long position){
+        model.get().setPosition(position);
     }
 
 
@@ -161,12 +160,12 @@ public class Controller extends Observable {
         return model.get().isShuffle();
     }
 
-    public float getVolume(){
-        return model.get().getCurrentVol();
+    public long getCurrentSongPosition(){
+        return this.model.get().getCurrentPosition();
     }
 
-    public String getPlaylistFolderPath() {
-        return this.model.get().getPlistPath();
+    public float getVolume(){
+        return model.get().getCurrentVol();
     }
 
     /**
@@ -184,17 +183,12 @@ public class Controller extends Observable {
         }
     }
 
-    /**
-     * @return Returns a {@link SimpleStringProperty} of the current length song length.
-     */
-    public SimpleStringProperty getCurrentSongLength() {
-        return new SimpleStringProperty(TimeConverter.setTimeFormatStd(
-                this.model.get().getCurrentSong().getLengthMillis())
-        );
+    public Song getCurrentSong() {
+        return this.model.get().getCurrentSong();
     }
 
-    public long getCurrentSongPosition(){
-        return this.model.get().getCurrentPosition();
+    public String getPlaylistFolderPath() {
+        return this.model.get().getPlistPath();
     }
 
     public ArrayList<Playlist> getAllPlaylists() {
@@ -209,29 +203,33 @@ public class Controller extends Observable {
         );
     }
 
-    public ObservableList<Playlist> getPlaylistData(){
-        return FXCollections.observableArrayList(
-                this.model.get().getPlaylists()
-        );
-    }
-
     public SimpleObjectProperty<Playlist> getCurrentPlaylist() {
         return new SimpleObjectProperty<>(
                 this.model.get().getCurrentPlaylist()
         );
     }
 
-    public SimpleObjectProperty<Song> getCurrentSong() {
-        return new SimpleObjectProperty<>(
-                this.model.get().getCurrentSong()
+    /**
+     * @return Returns a {@link SimpleStringProperty} of the current length song length.
+     */
+    public SimpleStringProperty getCurrentSongLength() {
+        return new SimpleStringProperty(TimeConverter.setTimeFormatStd(
+                this.model.get().getCurrentSong().getLengthMillis())
+        );
+    }
+
+    public ObservableList<Playlist> getPlaylistData(){
+        return FXCollections.observableArrayList(
+                this.model.get().getPlaylists()
         );
     }
 
 
-    /////////////////////// SETTERS
+    /////////////////////// PUBLIC METHODS
 
-    public void playCurrentSong(Playlist selectedPlaylist, Song song){
-        this.model.get().play(selectedPlaylist, song);
+    private void notifyChanges(){
+        setChanged();
+        notifyObservers();
     }
 
 

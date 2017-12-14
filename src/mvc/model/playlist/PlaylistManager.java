@@ -60,6 +60,36 @@ public class PlaylistManager {
 
     /////////////////////// PUBLIC METHODS
 
+    /**
+     * @return {@link Playlist#hasNext(int)}
+     */
+    public boolean hasNext(){
+        return hasNext(1);
+    }
+
+    /**
+     * @return {@link Playlist#hasNext(int)}
+     */
+    public boolean hasNext(int val){
+        try {
+            return this.getCurrentPlaylist().hasNext(val);
+        }
+        catch (NullPointerException e){
+            return false;
+        }
+    }
+
+    public boolean hasSong(Song song){
+        return this.getCurrentPlaylist().hasSong(song);
+    }
+
+    /**
+     * {@link Playlist#isCurrentSong(Song)}
+     */
+    public boolean isCurrentSong(Song songToPlay){
+        return this.playlists.get(this.currentPlistIndex).isCurrentSong(songToPlay);
+    }
+
     public void load(Playlist playlist){
         try {
             if (this.getCurrentPlaylist().equals(playlist)) {
@@ -81,12 +111,18 @@ public class PlaylistManager {
     }
 
     /**
-     * {@link Playlist#toggleShuffle()}
+     * Will create a new {@link Playlist} and saves it via the {@link M3UProcessor}.
+     * <br>Will then in the end update the {@link #playlists arraylist of playlists} by calling
+     * {@link #setAllPlaylists()}.<br>
+     * @param title The title of the {@link Playlist new playlist}.
+     * @param files The files being {@link mvc.model.extension.enums.Filetype#MP3 mp3s} or
+     * {@link mvc.model.extension.enums.Filetype#M3U m3us} which will be added to the {@link Playlist new playlist}.
      */
-    public void toggleShuffle(){
-        this.isShuffle = this.playlists
-                .get(this.currentPlistIndex)
-                .toggleShuffle();
+    public void newPlaylist(String title, ArrayList<File> files){
+        M3UProcessor processor = new M3UProcessor();
+
+        processor.writePlaylist(title, rootPath, files);
+        this.setAllPlaylists();
     }
 
     /**
@@ -104,71 +140,16 @@ public class PlaylistManager {
     }
 
     /**
-     * Will create a new {@link Playlist} and saves it via the {@link M3UProcessor}.
-     * <br>Will then in the end update the {@link #playlists arraylist of playlists} by calling
-     * {@link #setAllPlaylists()}.<br>
-     * @param title The title of the {@link Playlist new playlist}.
-     * @param files The files being {@link mvc.model.extension.enums.Filetype#MP3 mp3s} or
-     * {@link mvc.model.extension.enums.Filetype#M3U m3us} which will be added to the {@link Playlist new playlist}.
+     * {@link Playlist#toggleShuffle()}
      */
-    public void newPlaylist(String title, ArrayList<File> files){
-        M3UProcessor processor = new M3UProcessor();
-
-        processor.writePlaylist(title, rootPath, files);
-        this.setAllPlaylists();
-    }
-
-    /**
-     * @return {@link Playlist#hasNext(int)}
-     */
-    public boolean hasNext(){
-        return hasNext(1);
-    }
-
-    /**
-     * @return {@link Playlist#hasNext(int)}
-     */
-    public boolean hasNext(int val){
-        try {
-            return this.getCurrentPlaylist().hasNext(val);
-        }
-        catch (NullPointerException e){
-            return false;
-        }
-    }
-
-    /**
-     * {@link Playlist#isCurrentSong(Song)}
-     */
-    public boolean isCurrentSong(Song songToPlay){
-        return this.playlists.get(this.currentPlistIndex).isCurrentSong(songToPlay);
-    }
-
-    public boolean hasSong(Song song){
-        return this.getCurrentPlaylist().hasSong(song);
+    public void toggleShuffle(){
+        this.isShuffle = this.playlists
+                .get(this.currentPlistIndex)
+                .toggleShuffle();
     }
 
 
     /////////////////////// PRIVATE METHODS
-
-    /**
-     * Used to initialize and update the list containing all {@link Playlist playlists}
-     * which are in the {@see #rootPath}.
-     * @see DataFinder
-     */
-    private void setAllPlaylists() {
-        ArrayList<String> tempPlaylistsString = new DataFinder().findFiles(rootPath, Filetype.M3U);
-        this.playlists = new ArrayList<>();
-
-        Playlist temp;
-        for(String playlistPath : tempPlaylistsString){
-            temp = new Playlist(playlistPath);
-            this.playlists.add(temp);
-        }
-        if(!this.playlists.isEmpty()) {
-            this.playlistsObservable = FXCollections.observableList(this.playlists);
-        }
-    }
 
     private boolean findSong(Song song){
         Playlist temp;
@@ -183,6 +164,29 @@ public class PlaylistManager {
             }
         }
         return false;
+    }
+
+    /**
+     * Used to initialize and update the list containing all {@link Playlist playlists}
+     * which are in the {@see #rootPath}.
+     * @see DataFinder
+     */
+    private void setAllPlaylists() {
+        ArrayList<String> tempPlaylistsString = new DataFinder().findFiles(rootPath, Filetype.M3U);
+        this.playlists = new ArrayList<>();
+
+        Playlist temp;
+
+        for(String playlistPath : tempPlaylistsString){
+            temp = new Playlist(playlistPath);
+
+
+
+            this.playlists.add(temp);
+        }
+        if(!this.playlists.isEmpty()) {
+            this.playlistsObservable = FXCollections.observableList(this.playlists);
+        }
     }
 
 

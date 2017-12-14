@@ -72,7 +72,7 @@ public class Playlist {
 
     /////////////////////// PUBLIC METHODS
 
-    public void addSongs(ArrayList<Song> songpaths){
+    void addSongs(ArrayList<Song> songpaths){
         Song tempSong;
         for(Song song : songpaths){
             if(song == null){
@@ -111,10 +111,15 @@ public class Playlist {
             this.shuffle();
 
             for(int i = 0; i < shufflePlaylist.size(); i++){
-                System.out.println(
+                System.out.print(
                         ANSI.MAGENTA.colorize(
                                 i+1 + ". " +
-                            this.songs.get(
+                                        this.songs.get(i).getTitle() + " => "
+                        )
+                );
+                System.out.println(
+                        ANSI.BLUE.colorize(
+                                this.songs.get(
                                     this.shufflePlaylist.get(i)
                             ).getTitle() + " "
                         )
@@ -283,8 +288,12 @@ public class Playlist {
      * @return Returns a {@link Song} object.
      */
     public Song getCurrentSong(){
-        ANSI.RED.println(title + " SIZE: " + songs.size());
         try {
+//            if(playShuffle){
+//                return this.songs.get(
+//                        this.shufflePlaylist.get(shuffleIndex)
+//                );
+//            }
             return this.songs.get(currentSongIndx);
         }
         catch (Exception e){
@@ -351,6 +360,7 @@ public class Playlist {
                     && this.shuffleIndex + val <= this.songs.size()) {
                 this.shuffleIndex += val;
                 this.currentSongIndx = this.shufflePlaylist.get(this.shuffleIndex);
+                return this.songs.get(this.currentSongIndx);
             }
 //            else{
 //                this.shuffle();

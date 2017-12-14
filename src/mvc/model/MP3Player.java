@@ -15,6 +15,7 @@ import mvc.model.playlist.Song;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Observable;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class is used for the main model. It is used to create a mp3-player.
@@ -76,6 +77,127 @@ public class MP3Player extends Observable {
     @Override
     public void notifyObservers() {
         super.notifyObservers();
+    }
+
+    /**
+     * Will stop music playback through calling {@link SimpleMinim#stop()}.
+     */
+    public void stop(){
+        if(pause) {
+            modelThreader.resume();
+        }
+        stop = true;
+        minim.stop();
+        plistManager.getCurrentPlaylist().reset();
+        setChanged();
+        notifyObservers();
+    }
+
+    /**
+     * <br>Loads the current song.</br>
+     * Will invoke {@link #load(Song)} and hand down the {@link PlaylistManager#getCurrentSong() current song} of the
+     * {@link PlaylistManager#getCurrentPlaylist() current playlist}.
+     */
+    public void load(){
+        this.load(plistManager.getCurrentSong());
+    }
+
+    /**
+     * Will invoke {@link #load(String)} handing down the path of the given {@param song}.
+     * @param song The {@link Song} which is to be loaded in the {@link #player}.
+     */
+    public void load(Song song){
+        if(plistManager.hasSong(song)) {
+            this.stop();
+            ANSI.RED.println("=== STOPPED");
+
+            plistManager.setCurrentSong(song);
+//            plistManager.getCurrentPlaylist().setCurrentSong(song);
+            player = minim.loadMP3File(plistManager.getCurrentSong().getPath());
+            ANSI.RED.println("=== LOADED " +plistManager.getCurrentSong().getTitle());
+            setVolume(currentVol);
+            player.skip(-player.position());
+        }
+    }
+
+    /**
+     * Will invoke {@link #load(String)} handing down the path of the given {@param song}.
+     * @param playlist The {@link Song} which is to be loaded in the {@link #player}.
+     */
+    public void load(Playlist playlist){
+        plistManager.load(playlist);
+        ANSI.MAGENTA.println("\n==================================");
+        ANSI.MAGENTA.println(plistManager.getCurrentPlaylist().getTitle());
+        ANSI.MAGENTA.println(plistManager.getCurrentSong().getTitle());
+        ANSI.MAGENTA.println("==================================\n");
+        setChanged();
+        notifyObservers();
+    }
+
+    /**
+     * Will initialize the {@link #player} using the given {@param filename}.
+     * <br>After the initialization the {@link #currentVol} will be set applied to the {@link #player}.
+     * @param filename The filepath of the mp3 file which is to be loaded.
+     */
+    private void load(String filename){
+        this.stop();
+        player = minim.loadMP3File(filename);
+        setVolume(currentVol);
+        setChanged();
+        notifyObservers();
+    }
+
+    /**
+     * This method will mute the {@link SimpleAudioPlayer player}, by calling {@link #setVolume(float)}
+     * if the player is not muted and will unmute by calling {@link #setVolume(float)} with the {@link #currentVol}.
+     */
+    public void mute(){
+        if(player.isMuted()){
+            player.unmute();
+        }
+        else {
+            player.mute();
+        }
+        setChanged();
+        notifyObservers();
+    }
+
+    /**
+     * Creates a new {@link Playlist}.
+     * <br>Invokes {@see PlaylistManager#newPlaylist(String, ArrayList)}.</br>
+     * @param title The title of the {@link Playlist new playlist}.
+     * @param files The files being {@link mvc.model.extension.enums.Filetype#MP3 mp3s} or
+     * {@link mvc.model.extension.enums.Filetype#M3U m3us} which will be added to the {@link Playlist new playlist}.
+     */
+    public void newPlaylist(String title, ArrayList<File> files){
+        plistManager.newPlaylist(title, files);
+        setChanged();
+        notifyObservers();
+    }
+
+    /**
+     * Will pause current music playback.
+     */
+    public void pause(){
+        pause = pause ? false : true;
+        try {
+            if (pause) {
+                player.pause();
+                return;
+            } else {
+                this.modelThreader.resume();
+            }
+        } catch (NullPointerException e) {
+            player = minim.loadMP3File(plistManager.getCurrentSong().getPath());
+        } finally {
+            try {
+                Thread.currentThread().sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        setChanged();
+        notifyObservers();
     }
 
     /**
@@ -165,111 +287,6 @@ public class MP3Player extends Observable {
     }
 
     /**
-     * Will pause current music playback.
-     */
-    public void pause(){
-        pause = pause ? false : true;
-        try {
-            if (pause) {
-                player.pause();
-                return;
-            } else {
-                this.modelThreader.resume();
-            }
-        } catch (NullPointerException e) {
-            player = minim.loadMP3File(plistManager.getCurrentSong().getPath());
-        } finally {
-            try {
-                Thread.currentThread().sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        setChanged();
-        notifyObservers();
-    }
-
-    /**
-     * Will stop music playback through calling {@link SimpleMinim#stop()}.
-     */
-    public void stop(){
-        if(pause) {
-            modelThreader.resume();
-        }
-        stop = true;
-        minim.stop();
-        plistManager.getCurrentPlaylist().reset();
-        setChanged();
-        notifyObservers();
-    }
-
-    /**
-     * This method will mute the {@link SimpleAudioPlayer player}, by calling {@link #setVolume(float)}
-     * if the player is not muted and will unmute by calling {@link #setVolume(float)} with the {@link #currentVol}.
-     */
-    public void mute(){
-        if(player.isMuted()){
-            this.setVolume(this.currentVol);
-        }
-        else {
-            player.mute();
-        }
-        setChanged();
-        notifyObservers();
-    }
-
-    /**
-     * <br>Loads the current song.</br>
-     * Will invoke {@link #load(Song)} and hand down the {@link PlaylistManager#getCurrentSong() current song} of the
-     * {@link PlaylistManager#getCurrentPlaylist() current playlist}.
-     */
-    public void load(){
-        this.load(plistManager.getCurrentSong());
-    }
-
-    /**
-     * Will invoke {@link #load(String)} handing down the path of the given {@param song}.
-     * @param song The {@link Song} which is to be loaded in the {@link #player}.
-     */
-    public void load(Song song){
-        if(plistManager.hasSong(song)) {
-            this.stop();
-            ANSI.RED.println("=== STOPPED");
-
-            plistManager.setCurrentSong(song);
-//            plistManager.getCurrentPlaylist().setCurrentSong(song);
-            player = minim.loadMP3File(plistManager.getCurrentSong().getPath());
-            ANSI.RED.println("=== LOADED " +plistManager.getCurrentSong().getTitle());
-            setVolume(currentVol);
-        }
-    }
-
-    /**
-     * Will invoke {@link #load(String)} handing down the path of the given {@param song}.
-     * @param playlist The {@link Song} which is to be loaded in the {@link #player}.
-     */
-    public void load(Playlist playlist){
-        plistManager.load(playlist);
-        ANSI.MAGENTA.println("\n==================================");
-        ANSI.MAGENTA.println(plistManager.getCurrentPlaylist().getTitle());
-        ANSI.MAGENTA.println(plistManager.getCurrentSong().getTitle());
-        ANSI.MAGENTA.println("==================================\n");
-    }
-
-    /**
-     * Will initialize the {@link #player} using the given {@param filename}.
-     * <br>After the initialization the {@link #currentVol} will be set applied to the {@link #player}.
-     * @param filename The filepath of the mp3 file which is to be loaded.
-     */
-    private synchronized void load(String filename){
-        this.stop();
-        player = minim.loadMP3File(filename);
-        setVolume(currentVol);
-        setChanged();
-        notifyObservers();
-    }
-
-    /**
      * Will call either {@link PlayerThread#skipPosition(Skip)} or {@link PlayerThread#skipSong(Skip)} depending on
      * the given argument.
      * @param skipVal Is of type {@link Skip} and depending on its specific value the current Song will be skipped
@@ -279,7 +296,7 @@ public class MP3Player extends Observable {
         switch (skipVal) {
             case FORWARD:
             case BACKWARD:
-                modelThreader.skipPosition(skipVal);
+                skipPosition(skipVal);
                 break;
 
             case NEXT:
@@ -287,44 +304,6 @@ public class MP3Player extends Observable {
                 skipSong(skipVal);
                 break;
         }
-        setChanged();
-        notifyObservers();
-    }
-
-    /**
-     * Will skip the {@link PlaylistManager#getCurrentSong() current Song} of the
-     * {@link PlaylistManager#getCurrentPlaylist() current playlist}.
-     * @param val The amount of {@link Song songs} which are to be skipped.
-     * <br> Is of type {@link Skip#NEXT} or {@link Skip#PREVIOUS}.</br>
-     */
-    private void skipSong(Skip val){
-        if(plistManager.hasNext(val.getSkipVal())){
-            skip = true;
-            if(pause){
-                load();
-                return;
-            }
-            plistManager.setNextSong(val.getSkipVal());
-            load();
-                modelThreader.resume();
-            synchronized (modelThreader) {
-            }
-        }
-        else{
-            ANSI.CYAN.print("Playing last song. ");
-            ANSI.CYAN.println(plistManager.getCurrentSong().getTitle() + " by " + plistManager.getCurrentSong().getArtist());
-        }
-    }
-
-    /**
-     * Creates a new {@link Playlist}.
-     * <br>Invokes {@see PlaylistManager#newPlaylist(String, ArrayList)}.</br>
-     * @param title The title of the {@link Playlist new playlist}.
-     * @param files The files being {@link mvc.model.extension.enums.Filetype#MP3 mp3s} or
-     * {@link mvc.model.extension.enums.Filetype#M3U m3us} which will be added to the {@link Playlist new playlist}.
-     */
-    public void newPlaylist(String title, ArrayList<File> files){
-        plistManager.newPlaylist(title, files);
         setChanged();
         notifyObservers();
     }
@@ -352,6 +331,20 @@ public class MP3Player extends Observable {
     }
 
     /**
+     * @return Returns the current status of the {@link #player}. <br>If the {@link #player} is uninitialized
+     * return value will be {@code false}.
+     */
+    private boolean isPlaying(){
+        try {
+            return player.isPlaying();
+        }
+        catch (NullPointerException e){
+            load();
+            return false;
+        }
+    }
+
+    /**
      * Will convert any given linear value to its corresponding dB-Value value.
      * @param x The value in the {@code interval [0, 100]} which is to be converted into its corresponding dB value.
      * @return Returns a float value, which represents the converted dB value.
@@ -361,16 +354,39 @@ public class MP3Player extends Observable {
     }
 
     /**
-     * @return Returns the current status of the {@link #player}. <br>If the {@link #player} is uninitialized
-     * return value will be {@code false}.
+     * Will fast forward or rewind the {@link PlaylistManager#getCurrentSong() current Song} of the
+     * {@link PlaylistManager#getCurrentPlaylist() current playlist} via the {@link #player}.
+     * @param val The amount of seconds which are to be skipped.
+     * <br> Is of type {@link Skip#FORWARD} or {@link Skip#BACKWARD}.</br>
      */
-    private synchronized boolean isPlaying(){
-        try {
-            return player.isPlaying();
-        }
-        catch (NullPointerException e){
+    private void skipPosition(Skip val){
+        pause();
+        player.skip(val.getSkipVal());
+        pause();
+        setChanged();
+        notifyObservers();
+    }
+
+    /**
+     * Will skip the {@link PlaylistManager#getCurrentSong() current Song} of the
+     * {@link PlaylistManager#getCurrentPlaylist() current playlist}.
+     * @param val The amount of {@link Song songs} which are to be skipped.
+     * <br> Is of type {@link Skip#NEXT} or {@link Skip#PREVIOUS}.</br>
+     */
+    private void skipSong(Skip val){
+        if(plistManager.hasNext(val.getSkipVal())){
+            skip = true;
+            if(pause){
+                load();
+                return;
+            }
+            plistManager.setNextSong(val.getSkipVal());
             load();
-            return false;
+            modelThreader.resume();
+        }
+        else{
+            ANSI.CYAN.print("Playing last song. ");
+            ANSI.CYAN.println(plistManager.getCurrentSong().getTitle() + " by " + plistManager.getCurrentSong().getArtist());
         }
     }
 
@@ -418,15 +434,8 @@ public class MP3Player extends Observable {
     /**
      * @see PlaylistManager#getCurrentSong()
      */
-    public synchronized Song getCurrentSong(){
+    public Song getCurrentSong(){
         return plistManager.getCurrentSong();
-    }
-
-    /**
-     * @see PlaylistManager#getCurrentSong()
-     */
-    public SimpleObjectProperty<Song> getCurrentSongObs(){
-        return new SimpleObjectProperty<>(plistManager.getCurrentSong());
     }
 
     /**
@@ -450,14 +459,6 @@ public class MP3Player extends Observable {
         return plistManager.getCurrentPlaylistSongs();
     }
 
-    public ObservableList<Playlist> getPlaylistsObservable(){
-        return plistManager.getObservablePlaylists();
-    }
-
-    public ObservableList<Song> getCurrentSongsObservable(){
-        return plistManager.getObservableCurrentPlaylistSongs();
-    }
-
     public Playlist getCurrentPlaylist(){
         return plistManager.getCurrentPlaylist();
     }
@@ -473,8 +474,23 @@ public class MP3Player extends Observable {
         this.currentVol = val;
         if(player != null) {
             player.setGain(this.linearToDB(val));
+            if(player.isMuted()){
+                mute();
+            }
         }
 
+        setChanged();
+        notifyObservers();
+    }
+
+    public void setPosition(long position){
+        this.pause();
+        player.skip(-player.position());
+        player.skip(
+                Math.toIntExact((
+                    position
+                ))
+        );
         setChanged();
         notifyObservers();
     }
@@ -527,10 +543,6 @@ public class MP3Player extends Observable {
                 setChanged();
                 notifyObservers();
 
-                System.out.println("NAJAJAJAJAJAJAJAJAJAJAJAJAJAJ");
-                System.out.println("NAJAJAJAJAJAJAJAJAJAJAJAJAJAJ");
-                System.out.println("NAJAJAJAJAJAJAJAJAJAJAJAJAJAJ");
-
                 reset();
                 last = -1;
                 while (player.isPlaying()){
@@ -551,6 +563,9 @@ public class MP3Player extends Observable {
                     else if(skip || stop){
                         break;
                     }
+                }
+                if(!skip && !stop) {
+                    skipSong(Skip.NEXT);
                 }
             }
         }
@@ -598,22 +613,6 @@ public class MP3Player extends Observable {
             System.out.println("notified");
             setChanged();
             notifyObservers();
-        }
-
-        /**
-         * Will fast forward or rewind the {@link PlaylistManager#getCurrentSong() current Song} of the
-         * {@link PlaylistManager#getCurrentPlaylist() current playlist} via the {@link #player}.
-         * @param val The amount of seconds which are to be skipped.
-         * <br> Is of type {@link Skip#FORWARD} or {@link Skip#BACKWARD}.</br>
-         */
-        private synchronized void skipPosition(Skip val){
-            synchronized (this) {
-                pause();
-                player.skip(val.getSkipVal());
-                pause();
-                setChanged();
-                notifyObservers();
-            }
         }
 
         /**
