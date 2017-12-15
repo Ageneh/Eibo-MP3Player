@@ -57,9 +57,10 @@ public class StartupView extends Application implements Observer {
     /**
      * String property, used for binding and updates of certain elements.
      * <br>Will save the current position of the {@link mvc.model.MP3Player#player player}.</br>
-     * @see #setUpBottom()
+     * @see #setUpBottomPane()
      * @see #updateBottom()
      */
+    private HBox bottomPane;
     private SimpleLongProperty currentPosPropVal;
     private SimpleStringProperty currentPos;
     private SimpleLongProperty songLength;
@@ -67,7 +68,7 @@ public class StartupView extends Application implements Observer {
     /**
      * String property, used for binding and updates of certain elements.
      * {@link Controller#getCurrentSongLength()}
-     * @see #setUpBottom()
+     * @see #setUpBottomPane()
      * @see #updateBottom()
      */
     private SimpleStringProperty currentTotalLength;
@@ -119,7 +120,7 @@ public class StartupView extends Application implements Observer {
         );
 
         ////// BOTTOM PANEL AND CONTROLS
-        setUpBottom();
+        setUpBottomPane();
         this.root.setBottom(bottomPane);
         bottomPane.setId("controlBtnPane");
 
@@ -133,17 +134,17 @@ public class StartupView extends Application implements Observer {
                 event -> System.exit(0)
         );
         primaryStage.centerOnScreen();
-        primaryStage.sizeToScene();
-        primaryStage.setWidth(baseScene.getWidth());
-        primaryStage.setHeight(baseScene.getHeight());
 
         //// PARSE STYLESHEET
         this.baseScene.getStylesheets().add(getClass().getResource("/mvc/view/stylesheets/styles.css").toExternalForm());
 
-        this.primaryStage = primaryStage;
-        primaryStage.show();
 
+        this.primaryStage = primaryStage;
         this.update(null, null);
+        primaryStage.sizeToScene();
+        primaryStage.setWidth(baseScene.getWidth());
+        primaryStage.setHeight(baseScene.getHeight());
+        primaryStage.show();
 
         //// SETTING UP LISTENERS
         this.setUpListeners();
@@ -363,8 +364,7 @@ public class StartupView extends Application implements Observer {
         this.currentSongsTable.refresh();
     }
 
-    HBox bottomPane;
-    private HBox setUpBottom(){
+    private void setUpBottomPane(){
         bottomWidth = new SimpleDoubleProperty(Dim.MIN_W_SCREEN.intVal());
         bottomPane = new HBox();
         bottomPane.setAlignment(Pos.CENTER_LEFT);
@@ -383,7 +383,13 @@ public class StartupView extends Application implements Observer {
 //        bottomPane.addColumn(2, stop);
         ControlButton next = new ControlButton("NEXT");
         next.addEventHandler(
-                ActionEvent.ANY, event -> controller.skip(Skip.NEXT)
+                ActionEvent.ANY, event -> {
+                    controller.skip(Skip.NEXT);
+                    currentSongsTable.getSelectionModel().select(
+                            currentSongsTable.getItems().indexOf(controller.getCurrentSong())
+                    );
+                    currentSongsTable.scrollTo(controller.getCurrentSong());
+                }
         );
 //        bottomPane.addColumn(3, next);
         ControlButton prev = new ControlButton("PREV");
@@ -514,8 +520,7 @@ public class StartupView extends Application implements Observer {
         HBox.setHgrow(controlBtns, Priority.ALWAYS);
         bottomPane.getChildren().addAll(controlBtns);
 
-
-        return bottomPane;
+//        return bottomPane;
     }
 
     private StackPane setUpRightView(){
