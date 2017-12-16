@@ -11,7 +11,7 @@ public enum StandardValues {
 
     STD_PLAYLIST_ROOT("playlists/"),
     STD_SONG_COVER(
-            new File("covers/default-release-cd.png")),
+            new File("covers/default.png")),
     TEMP_PLIST_TITLE("temp-playlist"),
     DRAG_MSG_STD("Please drag a " + Filetype.MP3 + " or "
             + Filetype.M3U + " file or folder containing"

@@ -33,14 +33,11 @@ public class Playlist {
     private boolean playShuffle;
     /**
      * Is a pointer/value from {@link #playShuffle}.
-     */
-    private int shuffleIndex;
-    /**
      * A <it>pointer</it> which points to the current position of the {@link #playShuffle}.
      * <br>If the next song is to be played this <it>pointer</it> will be incremented and decremented
      * if the previous song is requested.</br>
      */
-    private int shufflePos;
+    private int shuffleIndex;
     private ArrayList<Integer> shufflePlaylist;
 
 
@@ -66,18 +63,19 @@ public class Playlist {
         this.shufflePlaylist = null;
         this.playShuffle = false;
         this.shuffleIndex = 0;
-        this.shufflePos = 0;
     }
 
 
-    /////////////////////// PUBLIC METHODS
+    /////////////////////// PUBLIC & PACKAGE METHODS
 
-    void addSongs(ArrayList<Song> songpaths){
+    void addSongs(ArrayList<Song> songs){
         Song tempSong;
-        for(Song song : songpaths){
+        int songNr = 0;
+        for(Song song : songs){
             if(song == null){
                 continue;
             }
+            song.setSongNr(songNr++);
             this.songs.add(song);
         }
         this.calcTotalLength();
@@ -117,13 +115,7 @@ public class Playlist {
                                         this.songs.get(i).getTitle() + " => "
                         )
                 );
-                System.out.println(
-                        ANSI.BLUE.colorize(
-                                this.songs.get(
-                                    this.shufflePlaylist.get(i)
-                            ).getTitle() + " "
-                        )
-                );
+                ANSI.BLUE.println(this.songs.get(this.shufflePlaylist.get(i)).getTitle() + " ");
             }
             this.shuffleIndex = 0;
         }
@@ -306,9 +298,9 @@ public class Playlist {
         return songs;
     }
 
-    public ArrayList<Song> getSongsObservable(){
+    public SimpleListProperty<Song> getSongsObservable(){
 //        ObservableList<Song> songs = FXCollections.observableList(this.songs);
-        return (songs);
+        return new SimpleListProperty<Song>(FXCollections.observableArrayList(songs));
     }
 
 
@@ -336,12 +328,16 @@ public class Playlist {
      * @return Returns a boolean which says whether the given {@link Song} has been set as the current or not.
      */
     boolean setCurrentSong(Song song){
-        if(this.isInPlaylist(song) || this.isCurrentSong(song)){
+        if(playShuffle && this.songs.get(currentSongIndx).equals(song)){
+            return true;
+        }
+        else if(this.isInPlaylist(song) || this.isCurrentSong(song)){
             this.currentSongIndx = this.songs.indexOf(song);
             if(playShuffle){
-                this.currentSongIndx = this.shufflePlaylist.indexOf(
-                        this.currentSongIndx
-                );
+//                this.currentSongIndx = this.shufflePlaylist.indexOf(
+//                        this.currentSongIndx
+//                );
+                this.shuffleIndex = this.shufflePlaylist.indexOf(this.currentSongIndx);
             }
             return true;
         }
@@ -354,13 +350,14 @@ public class Playlist {
      * @return Returns the new {@link Song current song}.
      * @throws NotAvailableException
      */
-    Song setNextSong(int val) throws NotAvailableException {
+    boolean setNextSong(int val) throws NotAvailableException {
         if(playShuffle){
             if(this.shuffleIndex + val >= 0
                     && this.shuffleIndex + val <= this.songs.size()) {
                 this.shuffleIndex += val;
                 this.currentSongIndx = this.shufflePlaylist.get(this.shuffleIndex);
-                return this.songs.get(this.currentSongIndx);
+//                return this.songs.get(this.currentSongIndx);
+                return true;
             }
 //            else{
 //                this.shuffle();
@@ -370,11 +367,13 @@ public class Playlist {
         else if(currentSongIndx + val >= 0
                 && currentSongIndx + val < this.songs.size()){
             this.currentSongIndx += val;
+            return true;
         }
         else {
             throw new NotAvailableException();
         }
-        return this.songs.get(currentSongIndx);
+//        return this.songs.get(currentSongIndx);
+        return false;
     }
 
 }

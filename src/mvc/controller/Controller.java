@@ -23,6 +23,7 @@ public class Controller extends Observable {
 
     private SimpleObjectProperty<MP3Player> model;
     private byte[] coverImg;
+    private Playlist playlist;
 
     private static AddPlaylistView smallWindow;
     private static DragAndDrogObserver dndObserver;
@@ -85,22 +86,11 @@ public class Controller extends Observable {
         smallWindow.show();
     }
 
-    public void loadPlaylist(Playlist selectedPlaylist){
-        this.model.get().load(selectedPlaylist);
-    }
-
     /**
      * {@link MP3Player#mute()}
      */
     public void mute(){
         this.model.get().mute();
-    }
-
-    /**
-     * {@link MP3Player#pause()}
-     */
-    public void pause(){
-        this.model.get().pause();
     }
 
     /**
@@ -110,15 +100,8 @@ public class Controller extends Observable {
         model.get().play();
     }
 
-    /**
-     * {@link MP3Player#play(Song)}
-     */
-    public void play(Song songToPlay){
-        model.get().play(songToPlay);
-    }
-
-    public void playCurrentSong(Playlist selectedPlaylist, Song song){
-        this.model.get().play(selectedPlaylist, song);
+    public void playCurrentSong(Song song){
+        this.model.get().play(playlist, song);
     }
 
     /**
@@ -147,10 +130,6 @@ public class Controller extends Observable {
      */
     public void toggleShuffle(){
         this.model.get().toggleShuffle();
-    }
-
-    public void setPosition(long position){
-        model.get().setPosition(position);
     }
 
 
@@ -187,26 +166,8 @@ public class Controller extends Observable {
         return this.model.get().getCurrentSong();
     }
 
-    public String getPlaylistFolderPath() {
-        return this.model.get().getPlistPath();
-    }
-
     public ArrayList<Playlist> getAllPlaylists() {
         return model.get().getPlaylistsArray();
-    }
-
-    public SimpleListProperty<Song> getCurrentSongs() {
-        return new SimpleListProperty<>(
-                FXCollections.observableList(
-                        this.model.get().getCurrentSongs()
-                )
-        );
-    }
-
-    public SimpleObjectProperty<Playlist> getCurrentPlaylist() {
-        return new SimpleObjectProperty<>(
-                this.model.get().getCurrentPlaylist()
-        );
     }
 
     /**
@@ -222,6 +183,20 @@ public class Controller extends Observable {
         return FXCollections.observableArrayList(
                 this.model.get().getPlaylists()
         );
+    }
+
+    public Playlist getSelectedPlaylist() {
+        return playlist;
+    }
+
+    public boolean isPlaying(){
+        return model.get().isPlaying();
+    }
+
+    /////////////////////// SETTERS
+
+    public void setSelectedPlaylist(Playlist playlist){
+        this.playlist = playlist;
     }
 
 

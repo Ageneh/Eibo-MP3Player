@@ -107,6 +107,7 @@ public class MP3Player extends Observable {
      * @param song The {@link Song} which is to be loaded in the {@link #player}.
      */
     public void load(Song song){
+
         if(plistManager.hasSong(song)) {
             this.stop();
             ANSI.RED.println("=== STOPPED");
@@ -124,12 +125,9 @@ public class MP3Player extends Observable {
      * Will invoke {@link #load(String)} handing down the path of the given {@param song}.
      * @param playlist The {@link Song} which is to be loaded in the {@link #player}.
      */
-    public void load(Playlist playlist){
+    public void load(Playlist playlist, Song song){
         plistManager.load(playlist);
-        ANSI.MAGENTA.println("\n==================================");
-        ANSI.MAGENTA.println(plistManager.getCurrentPlaylist().getTitle());
-        ANSI.MAGENTA.println(plistManager.getCurrentSong().getTitle());
-        ANSI.MAGENTA.println("==================================\n");
+        load(song);
         setChanged();
         notifyObservers();
     }
@@ -282,8 +280,8 @@ public class MP3Player extends Observable {
     }
 
     public void play(Playlist playlist, Song song){
-        this.load(playlist);
-        this.play(song);
+        this.load(playlist, song);
+        this.play();
     }
 
     /**
@@ -334,7 +332,7 @@ public class MP3Player extends Observable {
      * @return Returns the current status of the {@link #player}. <br>If the {@link #player} is uninitialized
      * return value will be {@code false}.
      */
-    private boolean isPlaying(){
+    public boolean isPlaying(){
         try {
             return player.isPlaying();
         }
@@ -374,18 +372,18 @@ public class MP3Player extends Observable {
      * <br> Is of type {@link Skip#NEXT} or {@link Skip#PREVIOUS}.</br>
      */
     private void skipSong(Skip val){
-        if(plistManager.hasNext(val.getSkipVal())){
+        if(plistManager.setNextSong(val.getSkipVal())){
             skip = true;
             if(pause){
                 load();
                 return;
             }
-            plistManager.setNextSong(val.getSkipVal());
+//            plistManager.setNextSong(val.getSkipVal());
             load();
             modelThreader.resume();
         }
         else{
-            ANSI.CYAN.print("Playing last song. ");
+            ANSI.CYAN.print("Cannot skip. ");
             ANSI.CYAN.println(plistManager.getCurrentSong().getTitle() + " by " + plistManager.getCurrentSong().getArtist());
         }
     }
@@ -478,7 +476,6 @@ public class MP3Player extends Observable {
                 mute();
             }
         }
-
         setChanged();
         notifyObservers();
     }
@@ -517,7 +514,7 @@ public class MP3Player extends Observable {
             long posMod;
             long last;
             long songPosition;
-            while(plistManager.hasNext()){
+            while(plistManager.setNextSong(Skip.NEXT.getSkipVal())){
                 //// PLAY SONG AND NOTIFY OBSERVERS
                 if(skip){
                     System.out.println("SKIPPING");

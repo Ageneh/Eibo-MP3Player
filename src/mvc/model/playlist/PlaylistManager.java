@@ -2,6 +2,7 @@ package mvc.model.playlist;
 
 import exceptions.NotAvailableException;
 import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import misc.ANSI;
@@ -31,6 +32,8 @@ public class PlaylistManager {
     private ObservableList<Song> playlistSongsObservable;
     private int currentPlistIndex;
 
+    private SimpleObjectProperty<File> playlistDir;
+
     /**
      * A flag which will be set {@code true} if the {@link #getCurrentPlaylist() current playlist}
      * is to be played in toggleShuffle mode.
@@ -47,6 +50,15 @@ public class PlaylistManager {
 
     public PlaylistManager(String rootPath){
         PlaylistManager.rootPath = rootPath;
+
+        this.playlistDir = new SimpleObjectProperty<>(
+                new File(rootPath)
+        );
+        this.playlistDir.addListener(
+                observable -> {
+
+                }
+        );
 
         this.playlistSongsObservable = new SimpleListProperty<>();
         this.playlistsObservable = new SimpleListProperty<>();
@@ -70,7 +82,7 @@ public class PlaylistManager {
     /**
      * @return {@link Playlist#hasNext(int)}
      */
-    public boolean hasNext(int val){
+    private boolean hasNext(int val){
         try {
             return this.getCurrentPlaylist().hasNext(val);
         }
@@ -98,8 +110,6 @@ public class PlaylistManager {
             } else {
                 this.getCurrentPlaylist().reset();
                 this.currentPlistIndex = this.playlists.indexOf(playlist);
-                this.getCurrentPlaylist().reset();
-                this.setAllPlaylists();
             }
         }
         catch (NullPointerException e){
@@ -131,11 +141,12 @@ public class PlaylistManager {
      * @return Returns a boolean which is true if the requested song is inside the bounds of the
      * {@link #getCurrentPlaylist()} current playlist.
      */
-    public void setNextSong(int val) {
+    public boolean setNextSong(int val) {
         try {
-            this.getCurrentPlaylist().setNextSong(val);
+           return this.getCurrentPlaylist().setNextSong(val);
         } catch (NotAvailableException e) {
-            this.getCurrentPlaylist().getCurrentSong();
+//            this.getCurrentPlaylist().getCurrentSong();
+            return false;
         }
     }
 
@@ -173,15 +184,14 @@ public class PlaylistManager {
      */
     private void setAllPlaylists() {
         ArrayList<String> tempPlaylistsString = new DataFinder().findFiles(rootPath, Filetype.M3U);
-        this.playlists = new ArrayList<>();
+        if(this.playlists == null) {
+            this.playlists = new ArrayList<>();
+        }
 
         Playlist temp;
 
         for(String playlistPath : tempPlaylistsString){
             temp = new Playlist(playlistPath);
-
-
-
             this.playlists.add(temp);
         }
         if(!this.playlists.isEmpty()) {

@@ -81,6 +81,16 @@
 }
 
 .slider .track{
+    -fx-background-color: rgba(75,75,75,0.25);
+    -fx-padding: 0.25em;
+}
+
+.slider .thumb{
+    -fx-padding: 0.25em;
+    -fx-background-color: #414141;
+}
+
+/*.slider .track{
     -fx-background-color: #d2d2d2;
     -fx-padding: 0.25em;
     -fx-border-radius: 100%;
@@ -89,4 +99,4 @@
 .slider .thumb{
     -fx-padding: 0.5em;
     -fx-background-color: #414141;
-}
+}*/

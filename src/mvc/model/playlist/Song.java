@@ -45,6 +45,7 @@ public class Song extends SongAssets {
      * The path of the standard cover image is defined in {@link SongAssets}.</br>
      */
     private byte[] coverImg;
+    private int songNr;
 
     /**
      * Saves the mp3-file of the {@link Song}.
@@ -62,6 +63,7 @@ public class Song extends SongAssets {
      */
     public Song(String path){
         try {
+            this.songNr = songNr;
             this.path = new File(path).getAbsolutePath();
             this.mp3File = new Mp3File(path);
             this.lengthMillis = mp3File.getLengthInMilliseconds();
@@ -78,16 +80,12 @@ public class Song extends SongAssets {
         }
     }
 
-    /**
-     * {@linkplain #Song(File)}
-     * @param file Receives a {@link File} object, of which the path will be passed through.
-     */
-    Song(File file){
-        this(file.getAbsolutePath());
-    }
-
 
     /////////////////////// GETTERS
+
+    public int getSongNr(){
+        return songNr+1;
+    }
 
     /**
      * Getter for the total lengthMillis of {@link Song} in milliseconds.
@@ -172,6 +170,10 @@ public class Song extends SongAssets {
         else /*if(this.coverImg == null || this.coverImg != null && this.coverImg.lengthMillis < 1)*/{
             this.coverImg = super.getSongCover();
         }
+    }
+
+    protected void setSongNr(int songNr){
+        this.songNr = songNr;
     }
 
 }

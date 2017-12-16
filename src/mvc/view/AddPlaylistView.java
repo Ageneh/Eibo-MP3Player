@@ -12,12 +12,14 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import misc.ANSI;
 import mvc.model.extension.enums.StandardValues;
 import mvc.model.extension.enums.Filetype;
+import mvc.model.playlist.DataFinder;
 import mvc.view.enums.Dim;
 
 import java.io.File;
@@ -27,11 +29,15 @@ import java.util.Observer;
 
 public class AddPlaylistView extends Application {
 
+    /////////////////////// VARIABLES
+
     private final double MIN_OPACITY = 0.3;
 
-    private FlowPane root;
-    private Label fileText;
+    private Stage stage;
+
+    private VBox root;
     private ArrayList<File> files;
+    private ArrayList<String> filepaths;
     private SimpleStringProperty title;
 
     private boolean hasSongs;
@@ -39,17 +45,12 @@ public class AddPlaylistView extends Application {
     private PlaylistViewObservable observable;
     private Label supportedMessage;
     private Button load;
-    private VBox vertical;
+    private Button cancel;
 
-    private boolean isStarted = false;
+    private boolean isStarted;
 
-    private ArrayList<String> filepaths;
 
-    private Stage stage;
-
-    public static void main(String[] args) {
-        launch(args);
-    }
+    /////////////////////// CONSTRUCTOR
 
     public AddPlaylistView(){
         ANSI.YELLOW.println("Drag and drop view created.");
@@ -57,111 +58,136 @@ public class AddPlaylistView extends Application {
         this.title = new SimpleStringProperty("");
         this.stage = new Stage();
         this.filepaths = new ArrayList<>();
+        this.isStarted = false;
+    }
+
+
+    /////////////////////// PUBLIC METHODS
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        root = new VBox();
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setPadding(
+                new Insets(Dim.PAD_SIDE_LIST.intVal())
+        );
+        root.setFillWidth(true);
+
+        HBox top = setupTop();
+        top.setPadding(
+                new Insets(
+                        0, 0,
+                        Dim.PAD_SIDE_LIST.intVal(),
+                        0
+                )
+        );
+        VBox.setVgrow(top, Priority.ALWAYS);
+        root.getChildren().add(top);
+
+        this.listView = new ListView<>();
+        this.listView.setStyle(
+                "-fx-background-color: rgba(45,45,45,0.15);"
+        );
+//        this.listView.setPrefHeight(
+//                Dim.H_ADDPLAYLIST_WINDOW.intVal() -
+//                        top.getBoundsInParent().getHeight() -
+//                        (1.75 * Dim.PAD_PLAYLIST_WINDOW.intVal())
+//        );
+        root.getChildren().add(listView);
+
+        this.supportedMessage = new Label(StandardValues.DRAG_MSG_STD.getString());
+        this.supportedMessage.setMaxWidth(Dim.W_ADDPLAYLIST_WINDOW.intVal() - 20);
+        this.supportedMessage.setTextAlignment(TextAlignment.CENTER);
+        this.supportedMessage.setWrapText(true);
+        this.supportedMessage.setMinHeight(70);
+        this.supportedMessage.setTextAlignment(TextAlignment.CENTER);
+        this.supportedMessage.setPadding(
+                new Insets(
+                        Dim.PAD_SIDE_LIST.intVal(),
+                        0,
+                        Dim.PAD_SIDE_LIST.intVal(),
+                        0
+                )
+        );
+        root.getChildren().add(supportedMessage);
+
+        HBox bottom = setupButtons();
+        root.getChildren().add(bottom);
+
+        Scene scene = new Scene(root);
+        setListeners();
+
+        this.load.setOnMouseClicked(
+                event -> {
+                    System.out.println("ADDING PLAYLIST ---");
+                    ANSI.YELLOW.println("Drag and drop view closing.");
+                    if(hasSongs()) {
+//                        title.set(titleField.getText());
+                        observable.notifyObservers();
+                        primaryStage.hide();
+                    }
+                }
+        );
+        this.cancel.setOnMouseClicked(
+                event -> {
+                    this.close(primaryStage);
+                }
+        );
+
+        primaryStage.setTitle("Add New Playlist");
+        primaryStage.setMinWidth(Dim.W_ADDPLAYLIST_WINDOW.doubleVal());
+        primaryStage.setMinHeight(Dim.H_ADDPLAYLIST_WINDOW.doubleVal());
+        primaryStage.setOnCloseRequest(
+                event -> {
+                    this.close(primaryStage);
+                }
+        );
+        primaryStage.setScene(scene);
+        primaryStage.showAndWait();
+    }
+
+    /**
+     * {@link PlaylistViewObservable}
+     * @param o An {@link Observer} which will watch over the {@link AddPlaylistView} window.
+     */
+    public void addObservers(Observer o){
+        this.observable.addObserver(o);
     }
 
     public void show(){
         this.start(this.stage);
     }
 
-    @Override
-    public void start(Stage primaryStage) {
-        Label playlistTitle = new Label("Set Playlist title:");
-        playlistTitle.setId("mainLabel");
-        playlistTitle.setPadding(
-                new Insets(0, 20, 0, 0)
-        );
+    /**
+     * @return Returns the flag, which tells whether songs have been added or not.<br> If falls, then the {@link mvc.model.playlist.Playlist} will not be created.</br>
+     */
+    public boolean hasSongs(){
+        if(files.size() == 0){
+            this.hasSongs = false;
+        }
+        return this.hasSongs;
+    }
 
-        TextField titleField = new TextField();
-        titleField.setPrefColumnCount(15);
-        titleField.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-border-radius: 3pt; -fx-border-color: rgba(0,0,0,0.51);"
-        );
-        titleField.setOnAction(
-                event -> {
-                    title.set(titleField.getText());
-                }
-        );
+    public String getTitle(){
+        return this.title.get();
+    }
 
-        this.load = new Button("Create Playlist");
-        this.load.setOpacity(MIN_OPACITY);
-        this.load.setDisable(true);
-        this.load.setOnMouseClicked(
-                event -> {
-                    ANSI.YELLOW.println("Drag and drop view closing.");
-                    if(hasSongs()) {
-                        title.set(titleField.getText());
-                        observable.notifyObservers();
-                        primaryStage.hide();
-                    }
-                }
-        );
+    public ArrayList<File> getFiles() {
+        return files;
+    }
 
-        this.supportedMessage = new Label(StandardValues.DRAG_MSG_STD.getString());
-        this.supportedMessage.setMaxWidth(Dim.W_ADDPLAYLIST_WINDOW.intVal() - 20);
-        this.supportedMessage.setWrapText(true);
 
-        this.files = new ArrayList<>();
+    /////////////////////// PRIVATE METHODS
 
-        HBox inputLine = new HBox(playlistTitle, titleField);
-        FlowPane iL = new FlowPane(playlistTitle, titleField);
-        inputLine.setStyle(
-                "-fx-background-color: rgba(107,107,107,0.2);" +
-                "-fx-background-radius: 0;"
-        );
-        inputLine.setPadding(
-                new Insets(10, 0, 10, 0)
-        );
-        inputLine.setAlignment(Pos.BASELINE_LEFT);
-
-        this.listView = new ListView<>();
-        this.listView.setStyle(
-                "-fx-background-color: transparent;"
-        );
-        this.listView.setPrefHeight(
-                Dim.H_ADDPLAYLIST_WINDOW.intVal() -
-                        inputLine.getBoundsInParent().getHeight() -
-                        (2* Dim.PAD_PLAYLIST_WINDOW.intVal())
-        );
-        this.listView.setEditable(true);
-
-        this.vertical = new VBox(inputLine, listView, supportedMessage, load);
-        this.vertical.setFillWidth(true);
-        this.vertical.setAlignment(Pos.TOP_CENTER);
-
-        this.root = new FlowPane(vertical);
-
-        setListeners();
-
-        Scene scene = new Scene(
-                this.root,
-                Dim.W_ADDPLAYLIST_WINDOW.intVal(),
-                Dim.H_ADDPLAYLIST_WINDOW.intVal()
-        );
-
-        this.listView.maxHeightProperty().bind(
-                scene.heightProperty().subtract(
-                        inputLine.getBoundsInParent().getHeight() +
-                                (4* Dim.PAD_PLAYLIST_WINDOW.intVal()))
-        );
-        this.listView.prefWidthProperty().bind(
-                scene.widthProperty().subtract(
-                        2* Dim.PAD_PLAYLIST_WINDOW.intVal())
-        );
-
-        primaryStage.setTitle("Add New Playlist");
-        primaryStage.setResizable(false);
-        primaryStage.setAlwaysOnTop(true);
-        primaryStage.setOnCloseRequest(
-                event -> {
-                    ANSI.YELLOW.println("Drag and drop view closing.");
-                    observable.notifyObservers();
-                    primaryStage.hide();
-                    primaryStage.close();
-                }
-        );
-        primaryStage.setScene(scene);
-        primaryStage.showAndWait();
+    private void close(Stage primaryStage){
+        ANSI.YELLOW.println("Drag and drop view closing.");
+//        observable.notifyObservers();
+        primaryStage.hide();
+        primaryStage.close();
     }
 
     /**
@@ -179,7 +205,16 @@ public class AddPlaylistView extends Application {
                 || isM3U
                 || isDir;
 
-        searchForFiles(db.getFiles().get(0));
+        DataFinder finder = new DataFinder();
+        this.filepaths = finder.findFiles(db.getFiles().get(0).getAbsolutePath(), Filetype.MP3);
+
+        if(files == null){
+            files = new ArrayList<>();
+        }
+
+        for (String path : filepaths){
+            this.files.add(new File(path));
+        }
 
         if(isDir){
             filepaths = new ArrayList<>();
@@ -200,41 +235,6 @@ public class AddPlaylistView extends Application {
                     db.getFiles().get(0).getName()
             );
         }
-    }
-
-    private void searchForFiles(File dir){
-        this.searchForFiles(dir, 0, Filetype.MP3, Filetype.M3U);
-    }
-
-    private void searchForFiles(File dir, int index, Filetype ... filetype){
-        File[] tempFiles = dir.listFiles();
-
-        if(tempFiles == null){
-            return;
-        }
-        for(File file : tempFiles){
-            if(!file.isHidden()){
-                if(file.isDirectory()) {
-                    this.searchForFiles(file, index + 1, filetype);
-                }
-                else{
-                    for(Filetype type : filetype) {
-                        if (file.getName().endsWith(type.getSuffix())) {
-                            this.files.add(file);
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    public String getTitle(){
-        return this.title.get();
-    }
-
-    public ArrayList<File> getFiles() {
-        return files;
     }
 
     private void setListeners(){
@@ -281,23 +281,42 @@ public class AddPlaylistView extends Application {
         );
     }
 
-    /**
-     * {@link PlaylistViewObservable}
-     * @param o An {@link Observer} which will watch over the {@link AddPlaylistView} window.
-     */
-    public void addObservers(Observer o){
-        this.observable.addObserver(o);
+    private HBox setupButtons(){
+        this.load = new Button("Create Playlist");
+        this.load.setOpacity(MIN_OPACITY);
+        this.load.setDisable(true);
+
+        this.cancel = new Button("Close");
+        this.cancel.setDisable(false);
+        this.cancel.setCancelButton(true);
+
+        HBox load_cancel = new HBox(load, cancel);
+        load_cancel.setMinWidth(Dim.H_BORDERP_BOTTOM.intVal());
+        load_cancel.setAlignment(Pos.CENTER);
+        load_cancel.setFillHeight(true);
+        load_cancel.setSpacing(Dim.PAD_PLAYLIST_WINDOW.intVal());
+
+        return load_cancel;
     }
 
-    /**
-     * @return Returns the flag, which tells whether songs have been added or not.<br> If falls, then the {@link mvc.model.playlist.Playlist} will not be created.</br>
-     */
-    public boolean hasSongs(){
-        if(files.size() == 0){
-            this.hasSongs = false;
-        }
-        return this.hasSongs;
+    private HBox setupTop(){
+        Label playlistTitle = new Label("Set Playlist title:");
+        playlistTitle.setId("mainLabel");
+        playlistTitle.setPadding(
+                new Insets(0, 20, 0, 0)
+        );
+
+        TextField titleField = new TextField();
+        titleField.setPrefColumnCount(15);
+        HBox.setHgrow(titleField, Priority.ALWAYS);
+        title.bind(titleField.textProperty());
+
+        HBox inputLine = new HBox(playlistTitle, titleField);
+        return inputLine;
     }
+
+
+    /////////////////////// INNER CLASS
 
     private class PlaylistViewObservable extends Observable{
 
@@ -305,7 +324,6 @@ public class AddPlaylistView extends Application {
         public void notifyObservers() {
             setChanged();
             super.notifyObservers();
-            System.out.println("LOAD BUTTON CLICKED");
         }
     }
 

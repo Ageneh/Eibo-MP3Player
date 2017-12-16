@@ -1,6 +1,7 @@
 package mvc;
 
 import javafx.application.Application;
+import javafx.concurrent.Task;
 import misc.ANSI;
 import mvc.model.extension.enums.StandardValues;
 import mvc.view.StartupView;
@@ -26,9 +27,7 @@ public class MP3Launcher {
 //        StartupView show = new StartupView();
         System.out.println("Started init");
         this.init();
-        System.out.println("Started background");
         Application.launch(StartupView.class, args);
-        System.out.println("ended background");
     }
 
     /**
@@ -36,17 +35,17 @@ public class MP3Launcher {
      */
     public void init() {
         ANSI.GREEN.println("\n***********************************************\nChecking ");
-        int count = (int)(Math.random() * 5 + 20);
+        int count = (int)(Math.random() * 5 + 10);
         for(int i = 0; i < count; i++){
             System.out.print(".");
             try {
-                Thread.currentThread().sleep(50 + (int)(Math.random()) * (int)(Math.random() * 100 + 35));
+                Thread.currentThread().sleep(20 + (int)(Math.random()) * (int)(Math.random() * 10 + 35));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
         System.out.println();
-        this.checkFolder();
+        checkFolder();
         ANSI.GREEN.println("***********************************************\n");
     }
 

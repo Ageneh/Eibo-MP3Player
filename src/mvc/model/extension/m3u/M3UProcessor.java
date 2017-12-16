@@ -153,6 +153,7 @@ public class M3UProcessor {
     private ArrayList<Song> consolidateToArray(ArrayList<File> files){
         ArrayList<Song> songs = new ArrayList<>();
 
+        int songInd = 0;
         for(File file : files){
             if(file.getName().endsWith(Filetype.MP3.getSuffix())) {
                 songs.add(
