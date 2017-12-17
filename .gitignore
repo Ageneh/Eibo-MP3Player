@@ -10,3 +10,7 @@ out/
 playlists/
 
 src/asd
+
+*.psd
+
+covers/default-release-cd\.png
