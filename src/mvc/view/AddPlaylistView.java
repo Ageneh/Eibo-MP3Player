@@ -46,13 +46,15 @@ public class AddPlaylistView extends Application {
     private Label supportedMessage;
     private Button load;
     private Button cancel;
+    private boolean firstStart;
 
     private boolean isStarted;
 
 
     /////////////////////// CONSTRUCTOR
 
-    public AddPlaylistView(){
+    public AddPlaylistView(boolean firstStart){
+        this.firstStart = firstStart;
         ANSI.YELLOW.println("Drag and drop view created.");
         this.observable = new PlaylistViewObservable();
         this.title = new SimpleStringProperty("");
@@ -92,11 +94,6 @@ public class AddPlaylistView extends Application {
         this.listView.setStyle(
                 "-fx-background-color: rgba(45,45,45,0.15);"
         );
-//        this.listView.setPrefHeight(
-//                Dim.H_ADDPLAYLIST_WINDOW.intVal() -
-//                        top.getBoundsInParent().getHeight() -
-//                        (1.75 * Dim.PAD_PLAYLIST_WINDOW.intVal())
-//        );
         root.getChildren().add(listView);
 
         this.supportedMessage = new Label(StandardValues.DRAG_MSG_STD.getString());
@@ -134,6 +131,9 @@ public class AddPlaylistView extends Application {
         );
         this.cancel.setOnMouseClicked(
                 event -> {
+                    if(firstStart){
+                        System.exit(0);
+                    }
                     this.close(primaryStage);
                 }
         );
@@ -143,6 +143,9 @@ public class AddPlaylistView extends Application {
         primaryStage.setMinHeight(Dim.H_ADDPLAYLIST_WINDOW.doubleVal());
         primaryStage.setOnCloseRequest(
                 event -> {
+                    if(firstStart){
+                        System.exit(0);
+                    }
                     this.close(primaryStage);
                 }
         );

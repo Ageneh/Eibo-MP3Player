@@ -93,7 +93,6 @@ public class StartupView extends Application implements Observer {
 
         this.stageTitle = stageTitle;
         this.allPlaylists = this.controller.getPlaylistData();
-        this.playlistListView = new ListView<>();
         this.currentCoverImg = new PlaylistSongCover();
         this.currentPosPropVal = new SimpleLongProperty(
                 controller.getCurrentSongPosition()
@@ -124,6 +123,7 @@ public class StartupView extends Application implements Observer {
 
     @Override
     public void start(Stage primaryStage) {
+
         this.sceneOpacity = new SimpleDoubleProperty(1);
 
         //// BORDER PANE PROPERTIES
@@ -303,18 +303,24 @@ public class StartupView extends Application implements Observer {
         leftPanel = new VBox();
         leftPanel.getChildren().add(leftPanelHeader);
 
+        this.playlistListView = new ListView<>();
         this.playlistListView.setEditable(false);
         this.playlistListView.setFixedCellSize(Dim.H_LIST_CELL.intVal());
         this.playlistListView.setPadding(new Insets(0));
         VBox.setVgrow(playlistListView, Priority.ALWAYS);
 
         this.setPlaylistViewCells();
-        this.controller.setSelectedPlaylist(
-                this.playlistListView.getItems().get(0).getPlaylist()
-        );
-        this.currentPlaylistTitle = new SimpleStringProperty(
-                controller.getSelectedPlaylist().getTitle()
-        );
+        this.currentPlaylistTitle = new SimpleStringProperty();
+        try {
+            System.out.println(this.playlistListView.getItems().get(0).getPlaylist().getTitle());
+            System.out.println(controller.getSelectedPlaylist().getTitle());
+            this.currentPlaylistTitle.set(
+                    controller.getSelectedPlaylist().getTitle()
+            );
+        }
+        catch (IndexOutOfBoundsException e){
+            System.out.println();
+        }
 
 
         leftPanel.getChildren().add(this.playlistListView);
@@ -324,7 +330,6 @@ public class StartupView extends Application implements Observer {
     private void setPlaylistViewCells(){
         PlistListCell cellBox;
         this.playlistListView.getItems().clear();
-        this.playlistListView.refresh();
 
         for (Playlist playlist : allPlaylists){
             if(playlist == null){
@@ -334,6 +339,8 @@ public class StartupView extends Application implements Observer {
             cellBox.setId("cellbox");
             this.playlistListView.getItems().add(cellBox.getGrid());
         }
+        playlistListView.getSelectionModel().select(0);
+        this.playlistListView.refresh();
     }
 
     /**
@@ -371,7 +378,9 @@ public class StartupView extends Application implements Observer {
                 length
         );
         this.playlistListView.getSelectionModel().select(0);
-        this.updateSongTable(this.playlistListView.getSelectionModel().getSelectedItem().getPlaylist());
+        this.updateSongTable(
+                this.playlistListView.getSelectionModel().getSelectedItem().getPlaylist()
+        );
         this.currentSongsTable.getSelectionModel().select(0);
     }
 
@@ -559,7 +568,9 @@ public class StartupView extends Application implements Observer {
     private StackPane setUpRightView(){
         StackPane rightPanel = new StackPane();
 
-        Text bigPlaylist = new Text(controller.getSelectedPlaylist().getTitle());
+        Text bigPlaylist = new Text(
+                controller.getSelectedPlaylist().getTitle()
+        );
         bigPlaylist.setFont(Font.font("SF Pro Display", FontWeight.BOLD, 20));
         bigPlaylist.textProperty().bind(this.currentPlaylistTitle);
         bigPlaylist.setId("playlistBig");
@@ -642,9 +653,6 @@ public class StartupView extends Application implements Observer {
     private void updateSongTable(Playlist playlist){
         this.currentSongsTable.getItems().setAll(
                 playlist.getSongs()
-        );
-        this.currentSongsTable.getSelectionModel().select(
-                currentSongsTable.getSelectionModel().getSelectedIndex()
         );
         this.currentSongsTable.refresh();
     }

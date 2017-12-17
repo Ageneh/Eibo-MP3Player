@@ -26,10 +26,8 @@ public class MP3Launcher {
      * @param args The initial arguments handed down from the main.
      */
     public MP3Launcher(String[] args){
-        new Thread(
-                () -> init(),
-                "CHECKER"
-        ).start();
+//        StartupView startupView = new StartupView(init());
+        this.init();
         Application.launch(StartupView.class, args);
     }
 
@@ -48,18 +46,20 @@ public class MP3Launcher {
      * crucial when it comes to the creation and loading of playlists.
      * <br>If {@code playlists} does not exist, it will be created.
      */
-    private void checkFolder() {
+    private boolean checkFolder() {
         File playlistDir;
         playlistDir = new File(StandardValues.STD_PLAYLIST_ROOT.getString());
 
         if(playlistDir.exists() && playlistDir.isDirectory()){
             ANSI.GREEN.println("Playlist folder \""+ playlistDir.getAbsolutePath() +"\" exists.");
+            return true;
         }
         else{
             playlistDir.mkdir();
             ANSI.YELLOW.println("Playlist folder \"" + StandardValues.TEMP_PLIST_TITLE.getString() + "\" has been created.");
             ANSI.YELLOW.println("From now on, you can find all your playlists, in this folder:");
             ANSI.YELLOW.println("\"" + playlistDir.getAbsolutePath());
+            return false;
         }
     }
 }

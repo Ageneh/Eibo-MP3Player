@@ -90,7 +90,7 @@ public class M3UProcessor {
      */
     private void writeEXTM3U(String title, String directoryPath, List<Song> playlistSongs){
         FileWriter writer = null;
-        File file;
+
         try {
             writer = initWriter(title, directoryPath, Filetype.M3U);
             writer.append(EXT_M3U);

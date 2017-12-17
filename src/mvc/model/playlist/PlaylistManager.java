@@ -61,8 +61,7 @@ public class PlaylistManager {
         this.setAllPlaylists();
         this.isShuffle = false;
 
-        this.load(this.getCurrentPlaylist());
-        this.getCurrentPlaylist().reset();
+//        this.load(this.getCurrentPlaylist());
     }
 
 
@@ -129,6 +128,7 @@ public class PlaylistManager {
 
         File playlistFile = processor.writePlaylist(title, rootPath, files);
         this.playlists.add(new Playlist(playlistFile.getAbsolutePath()));
+        this.playlistsObservable = FXCollections.observableList(this.playlists);
 
 //        this.setAllPlaylists();
     }
@@ -142,6 +142,9 @@ public class PlaylistManager {
     public boolean setNextSong(int val) {
         try {
            return this.getCurrentPlaylist().setNextSong(val);
+        } catch (NullPointerException e) {
+//            this.getCurrentPlaylist().getCurrentSong();
+            return false;
         } catch (NotAvailableException e) {
 //            this.getCurrentPlaylist().getCurrentSong();
             return false;
@@ -225,7 +228,12 @@ public class PlaylistManager {
      * @see Playlist#getCurrentSong()
      */
     public Song getCurrentSong(){
-        return this.getCurrentPlaylist().getCurrentSong();
+        try {
+            return this.getCurrentPlaylist().getCurrentSong();
+        }
+        catch (NullPointerException ignored){
+            return null;
+        }
     }
 
     /**

@@ -7,17 +7,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-public abstract class SongAssets {
+public class SongAssets {
 
-//    private static final String STD_SONG_COVER = "/Users/henock/IdeaProjects/EiboMP3/src/mvc/model/playlist/covers/default-release-cd.png";
     private byte[] stdSongCover;
 
-    protected byte[] getSongCover(){
+    public byte[] getSongCover(){
         return this.setStdSongCover(StandardValues.STD_SONG_COVER.getString());
-//        return stdSongCover;
     }
 
-    protected byte[] getSongCover(String path){
+    public byte[] getSongCover(String path){
         return this.setStdSongCover(path);
     }
 

@@ -107,6 +107,7 @@ public class MP3Player extends Observable {
      * @param song The {@link Song} which is to be loaded in the {@link #player}.
      */
     public void load(Song song){
+
         if(plistManager.hasSong(song)) {
             this.stop();
             plistManager.setCurrentSong(song);

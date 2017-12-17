@@ -12,6 +12,7 @@ import mvc.model.extension.ImageConverter;
 import mvc.model.extension.enums.Skip;
 import mvc.model.playlist.Playlist;
 import mvc.model.playlist.Song;
+import mvc.model.playlist.SongAssets;
 import mvc.view.AddPlaylistView;
 
 import java.util.ArrayList;
@@ -34,54 +35,39 @@ public class Controller extends Observable {
 
     public Controller(){
         this.model = new SimpleObjectProperty<>(new MP3Player());
-
-        this.coverImg = model.get().getCurrentSong().getCover();
-
         //// OBSERVERS & VIEWS
         modelObserver = new ModelObserver();
         dndObserver = new DragAndDrogObserver();
-    }
+        this.checkForSongs();
 
-    public Controller( String a){
-//        this.model = new MP3Player();
-//
-//        this.allPlaylists = new SimpleListProperty<>(FXCollections.observableArrayList(model.getPlaylists()));
-//
-//        this.playlistFolderPath = new SimpleStringProperty(model.getPlistPath());
-////        this.currentPlaylist = this.model.getCurrentPlaylist();
-//        this.playlistCount = new SimpleIntegerProperty(
-//                this.allPlaylists.size()
-//        );
-//        this.allPlaylistsSize = Bindings.size(this.allPlaylists);
-//        this.playlistCount.bind(
-//                this.allPlaylistsSize
-//        );
-//
-//        this.currentSongs = new SimpleListProperty<>(
-//                FXCollections.observableList(this.model.getCurrentSongs())
-//        );
-//        this.currentSongLength = new SimpleStringProperty(
-//                this.setTimeFormatStd(this.model.getCurrentSong().getLengthMillis())
-//        );
-//        this.currentSongPosition = new SimpleStringProperty(this.setTimeFormatStd(0));
-//
-//        this.currentVolume = new SimpleFloatProperty(this.model.getCurrentVol());
-//
-//        //// OBSERVERS & VIEWS
-//        modelObserver = new ModelObserver();
-//        smallWindow = new AddPlaylistView();
-//        dndObserver = new DragAndDrogObserver();
+        try {
+            this.coverImg = model.get().getCurrentSong().getCover();
+        }
+        catch (NullPointerException e){
+            this.coverImg = new SongAssets().getSongCover();
+        }
     }
 
 
     //////////////////////// MODEL COMMUNICATION
+
+    public void checkForSongs(){
+        if(model.get().getPlaylists().isEmpty()){
+            this.addSongs(true);
+        }
+        this.setSelectedPlaylist(model.get().getCurrentPlaylist());
+    }
 
     /**
      * Starts and shows the drag'n'drop view where the user is able to create {@link Playlist playlists}.
      * @see AddPlaylistView
      */
     public void addSongs(){
-        smallWindow = new AddPlaylistView();
+        addSongs(false);
+    }
+
+    public void addSongs(boolean firstStart){
+        smallWindow = new AddPlaylistView(firstStart);
         smallWindow.addObservers(dndObserver);
         smallWindow.show();
     }
@@ -235,6 +221,8 @@ public class Controller extends Observable {
      * <br>Implements {@linkplain Observer}.</br>
      */
     private class DragAndDrogObserver implements Observer{
+
+
         @Override
         public void update(Observable o, Object arg) {
             if (smallWindow.hasSongs()) {
@@ -242,6 +230,7 @@ public class Controller extends Observable {
                         smallWindow.getTitle(),
                         smallWindow.getFiles()
                 );
+                setChanged();
                 notifyObservers();
             }
         }
