@@ -110,12 +110,10 @@ public class MP3Player extends Observable {
 
         if(plistManager.hasSong(song)) {
             this.stop();
-            ANSI.RED.println("=== STOPPED");
 
             plistManager.setCurrentSong(song);
 //            plistManager.getCurrentPlaylist().setCurrentSong(song);
             player = minim.loadMP3File(plistManager.getCurrentSong().getPath());
-            ANSI.RED.println("=== LOADED " +plistManager.getCurrentSong().getTitle());
             setVolume(currentVol);
             player.skip(-player.position());
         }
@@ -620,7 +618,6 @@ public class MP3Player extends Observable {
         private void waiter(){
             synchronized (modelThreader) {
                 setChanged();
-                System.out.println("WAIT");
                 notifyObservers();
                 try {
                     wait();

@@ -18,6 +18,8 @@ public class M3UProcessor {
 
     private boolean isEXT;
     private BufferedReader breader;
+    private String filePath;
+    private File file;
 
 
     /////////////////////// CONSTRUCTOR
@@ -29,11 +31,12 @@ public class M3UProcessor {
 
     /////////////////////// PUBLIC METHODS
 
-    public void writePlaylist(String title,
+    public File writePlaylist(String title,
                               String directoryPath,
                               ArrayList<File> files){
         ArrayList<Song> playlistSongs = this.consolidateToArray(files);
         this.writeEXTM3U(title, directoryPath, playlistSongs);
+        return file;
     }
 
     /**
@@ -66,11 +69,13 @@ public class M3UProcessor {
             if(title == null || title.equals("")){
                 LocalDateTime ld = LocalDateTime.now();
                 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM_HH:mm:ss");
-                title = "NewPlaylist_" + dtf.format(ld);
+                title = "Playlist_" + dtf.format(ld);
 
                 System.out.println("NEW PLAYLIST: " + title);
             }
-            fw = new FileWriter(new File(directoryPath + title + filetype.getSuffix()));
+            filePath = directoryPath + title + filetype.getSuffix();
+            file = new File(filePath);
+            fw = new FileWriter(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -85,6 +90,7 @@ public class M3UProcessor {
      */
     private void writeEXTM3U(String title, String directoryPath, List<Song> playlistSongs){
         FileWriter writer = null;
+        File file;
         try {
             writer = initWriter(title, directoryPath, Filetype.M3U);
             writer.append(EXT_M3U);

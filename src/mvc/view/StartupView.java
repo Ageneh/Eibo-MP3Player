@@ -171,10 +171,9 @@ public class StartupView extends Application implements Observer {
         primaryStage.opacityProperty().bind(this.sceneOpacity);
         primaryStage.show();
 
-        //// SETTING UP LISTENERS
-
-        System.out.println(":::::::::::::::::::::::");
         this.update(null, null);
+
+        //// SETTING UP LISTENERS
         this.setUpListeners();
     }
 
@@ -395,22 +394,6 @@ public class StartupView extends Application implements Observer {
         this.updateSongTable(this.playlistListView.getSelectionModel().getSelectedItem().getPlaylist());
     }
 
-    /**
-     * This method creates a {@link TableView table}, which shows all songs, of the {@param playlist given playlist}.
-     * @param playlist The selected {@link Playlist} which is to be shown in the table.
-     */
-    private void updateSongTable(Playlist playlist){
-//        this.currentSongsTable = new TableView<>();
-
-        this.currentSongsTable.getItems().setAll(
-                playlist.getSongs()
-        );
-        this.currentSongsTable.getSelectionModel().select(
-                currentSongsTable.getSelectionModel().getSelectedIndex()
-        );
-        this.currentSongsTable.refresh();
-    }
-
     private HBox setUpBottomPane(){
         HBox bottomPane = new HBox();
         bottomPane.setId("controlBtnPane");
@@ -588,15 +571,14 @@ public class StartupView extends Application implements Observer {
         Text bigArtist = new Text(controller.getCurrentSong().getAlbum());
         bigArtist.textProperty().bind(this.currentSongArtist);
         bigArtist.setId("artistBig");
-        Text bigLength = new Text(
-                TimeConverter.setTimeFormatStd(
-                        controller.getCurrentSong().getLengthMillis()
-                ));
+        Text bigLength = new Text(controller.getCurrentSongLength().get());
         bigLength.textProperty().bind(this.currentSongLength);
         bigLength.setId("lengthBig");
 
         VBox bigSongTextContainer = new VBox(bigPlaylist, bigTitle, bigArtist, bigAlbum, bigLength);
         bigSongTextContainer.setFillWidth(true);
+        AnchorPane anchorPane = new AnchorPane(bigSongTextContainer);
+        AnchorPane.setBottomAnchor(bigSongTextContainer, 0.0);
 
         this.currentCoverImg.setImage(controller.getCoverImg());
         this.currentCoverImg.setPreserveRatio(true);
@@ -628,17 +610,31 @@ public class StartupView extends Application implements Observer {
         );
         rightPanel.getChildren().add(this.currentCoverImg);
 
-        HBox cover_bigText = new HBox(currentCoverImg, bigSongTextContainer);
-        cover_bigText.setAlignment(Pos.BOTTOM_LEFT);
+        HBox cover_bigElements = new HBox(currentCoverImg, anchorPane);
+        cover_bigElements.setAlignment(Pos.BOTTOM_LEFT);
+//        cover_bigElements.setPadding(
+//                new Insets(Dim.PAD_SIDE_LIST.intVal())
+//        );
+        cover_bigElements.setSpacing(Dim.PAD_SIDE_LIST.intVal());
+        cover_bigElements.setFillHeight(true);
 
         VBox verticalSeperator = new VBox();
-        verticalSeperator.getChildren().addAll(cover_bigText);
+        verticalSeperator.getChildren().addAll(cover_bigElements);
 
         this.setSongTable();
         this.playlistListView.getSelectionModel().select(0);
         verticalSeperator.getChildren().add(this.currentSongsTable);
+        verticalSeperator.setPadding(
+                new Insets(
+                        Dim.PAD_SIDE_LIST.intVal(),
+                        0, 0 ,
+                        Dim.PAD_SIDE_LIST.intVal()
+                )
+        );
 
         rightPanel.getChildren().add(verticalSeperator);
+        rightPanel.setAlignment(Pos.BOTTOM_LEFT);
+        StackPane.setAlignment(cover_bigElements, Pos.BOTTOM_LEFT);
 
         return rightPanel;
     }
@@ -648,7 +644,6 @@ public class StartupView extends Application implements Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-        System.out.println("=======================");
         Platform.runLater(() -> {
                     updatePlaylistView();
                     updateSongView();
@@ -665,11 +660,24 @@ public class StartupView extends Application implements Observer {
         this.playlistListView.refresh();
     }
 
+    /**
+     * This method creates a {@link TableView table}, which shows all songs, of the {@param playlist given playlist}.
+     * @param playlist The selected {@link Playlist} which is to be shown in the table.
+     */
+    private void updateSongTable(Playlist playlist){
+        this.currentSongsTable.getItems().setAll(
+                playlist.getSongs()
+        );
+        this.currentSongsTable.getSelectionModel().select(
+                currentSongsTable.getSelectionModel().getSelectedIndex()
+        );
+        this.currentSongsTable.refresh();
+    }
+
     private void updateSongView(){
         this.currentCoverImg.setImage(
                 this.controller.getCoverImg()
         );
-
     }
 
     private void updateBottom(){

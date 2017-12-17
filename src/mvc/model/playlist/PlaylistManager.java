@@ -131,8 +131,10 @@ public class PlaylistManager {
     public void newPlaylist(String title, ArrayList<File> files){
         M3UProcessor processor = new M3UProcessor();
 
-        processor.writePlaylist(title, rootPath, files);
-        this.setAllPlaylists();
+        File playlistFile = processor.writePlaylist(title, rootPath, files);
+        this.playlists.add(new Playlist(playlistFile.getAbsolutePath()));
+
+//        this.setAllPlaylists();
     }
 
     /**
