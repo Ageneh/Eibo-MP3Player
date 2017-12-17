@@ -2,11 +2,13 @@ package mvc;
 
 import javafx.application.Application;
 import javafx.concurrent.Task;
+import javafx.stage.Stage;
 import misc.ANSI;
 import mvc.model.extension.enums.StandardValues;
 import mvc.view.StartupView;
 
 import java.io.File;
+import java.util.concurrent.Executor;
 
 /**
  * This class starts the MP3.
@@ -24,9 +26,10 @@ public class MP3Launcher {
      * @param args The initial arguments handed down from the main.
      */
     public MP3Launcher(String[] args){
-//        StartupView show = new StartupView();
-        System.out.println("Started init");
-        this.init();
+        new Thread(
+                () -> init(),
+                "CHECKER"
+        ).start();
         Application.launch(StartupView.class, args);
     }
 
@@ -35,16 +38,6 @@ public class MP3Launcher {
      */
     public void init() {
         ANSI.GREEN.println("\n***********************************************\nChecking ");
-        int count = (int)(Math.random() * 5 + 10);
-        for(int i = 0; i < count; i++){
-            System.out.print(".");
-            try {
-                Thread.currentThread().sleep(20 + (int)(Math.random()) * (int)(Math.random() * 10 + 35));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println();
         checkFolder();
         ANSI.GREEN.println("***********************************************\n");
     }

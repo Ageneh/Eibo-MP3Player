@@ -54,11 +54,6 @@ public class PlaylistManager {
         this.playlistDir = new SimpleObjectProperty<>(
                 new File(rootPath)
         );
-        this.playlistDir.addListener(
-                observable -> {
-
-                }
-        );
 
         this.playlistSongsObservable = new SimpleListProperty<>();
         this.playlistsObservable = new SimpleListProperty<>();
@@ -67,6 +62,7 @@ public class PlaylistManager {
         this.isShuffle = false;
 
         this.load(this.getCurrentPlaylist());
+        this.getCurrentPlaylist().reset();
     }
 
 

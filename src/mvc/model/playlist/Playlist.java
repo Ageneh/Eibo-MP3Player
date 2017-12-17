@@ -281,11 +281,6 @@ public class Playlist {
      */
     public Song getCurrentSong(){
         try {
-//            if(playShuffle){
-//                return this.songs.get(
-//                        this.shufflePlaylist.get(shuffleIndex)
-//                );
-//            }
             return this.songs.get(currentSongIndx);
         }
         catch (Exception e){

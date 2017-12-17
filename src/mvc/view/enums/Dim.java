@@ -13,6 +13,9 @@ public enum Dim {
     W_COVER_IMG(H_COVER_IMG.intVal()),
     H_LIST_CELL(30),
 
+    VOL_MAX(100),
+    VOL_MIN(0),
+
     BASE_FONT_SIZE(13),
 
     //// PADDINGS

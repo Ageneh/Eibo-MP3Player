@@ -107,15 +107,14 @@ public class MP3Player extends Observable {
      * @param song The {@link Song} which is to be loaded in the {@link #player}.
      */
     public void load(Song song){
-
         if(plistManager.hasSong(song)) {
             this.stop();
-
             plistManager.setCurrentSong(song);
-//            plistManager.getCurrentPlaylist().setCurrentSong(song);
             player = minim.loadMP3File(plistManager.getCurrentSong().getPath());
             setVolume(currentVol);
             player.skip(-player.position());
+            setChanged();
+            notifyObservers();
         }
     }
 
@@ -515,6 +514,10 @@ public class MP3Player extends Observable {
             while(plistManager.setNextSong(Skip.NEXT.getSkipVal())){
                 //// PLAY SONG AND NOTIFY OBSERVERS
                 if(skip){
+                    if (pause){
+                        load();
+                        waiter();
+                    }
                     System.out.println("SKIPPING");
                     waiter();
                     System.out.println("RESUME SK");
@@ -523,14 +526,11 @@ public class MP3Player extends Observable {
                     waiter();
                     System.out.println("RESUME ST");
                 }
-                else if(!skip && !pause){
-                    setChanged();
-                }
-                else if(pause && stop){
-                    reset();
-                    waiter();
-                    resume();
-                }
+//                else if(pause && stop){
+//                    reset();
+//                    waiter();
+//                    resume();
+//                }
                 else{
                     skipSong(Skip.NEXT);
                     resume();
@@ -540,7 +540,7 @@ public class MP3Player extends Observable {
 
                 reset();
                 last = -1;
-                while (player.isPlaying()){
+                while (player.isPlaying() ){
                     songPosition = player.position();
                     posMod =  songPosition % Interval.REFRESH_RATE.getVal();
                     if(posMod <= Interval.LATENCY.getVal() && posMod >= 0 && posMod != last){
@@ -552,6 +552,7 @@ public class MP3Player extends Observable {
                     if(pause){
                         waiter();
                         if(!player.isPlaying()){
+                            System.out.println("BREAKING");
                             break;
                         }
                     }
@@ -564,18 +565,6 @@ public class MP3Player extends Observable {
                 }
             }
         }
-
-        /*
-
-                if(!skip && stop && !pause){
-                    ANSI.MAGENTA.println("zzzzzzzzzzzzzzzzz");
-                    waiter();
-                } else if(!skip && !stop && !pause){
-                    continue;
-                } else{
-                    skipSong(Skip.NEXT);
-                }
-         */
 
         /**
          * Will notify the current {@link PlayerThread}.

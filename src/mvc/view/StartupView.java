@@ -7,7 +7,6 @@ import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.*;
 import javafx.collections.ObservableList;
-import javafx.css.SimpleStyleableStringProperty;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -27,10 +26,10 @@ import mvc.controller.Controller;
 import mvc.model.extension.enums.Skip;
 import mvc.model.playlist.Playlist;
 import mvc.model.playlist.Song;
-import mvc.view.elements.ControlButton;
-import mvc.view.elements.PlaylistSongCover;
-import mvc.view.elements.PlaylistViewCell;
-import mvc.view.elements.PlistListCell;
+import mvc.view.custom_elements.ControlButton;
+import mvc.view.custom_elements.PlaylistSongCover;
+import mvc.view.custom_elements.PlaylistViewCell;
+import mvc.view.custom_elements.PlistListCell;
 import mvc.view.enums.Dim;
 
 import java.util.Observable;
@@ -60,7 +59,7 @@ public class StartupView extends Application implements Observer {
     private SimpleStringProperty currentSongAlbum;
     private SimpleStringProperty play_pauseStyle;
     /**
-     * String property, used for binding and updates of certain elements.
+     * String property, used for binding and updates of certain custom_elements.
      * <br>Will save the current position of the {@link mvc.model.MP3Player#player player}.</br>
      * @see #setUpBottomPane()
      * @see #updateBottom()
@@ -71,7 +70,7 @@ public class StartupView extends Application implements Observer {
     private SimpleLongProperty songLength;
     private SimpleDoubleProperty bottomWidth;
     /**
-     * String property, used for binding and updates of certain elements.
+     * String property, used for binding and updates of certain custom_elements.
      * {@link Controller#getCurrentSongLength()}
      * @see #setUpBottomPane()
      * @see #updateBottom()
@@ -151,6 +150,7 @@ public class StartupView extends Application implements Observer {
         this.bottomPane = setUpBottomPane();
         bottomPane.setAlignment(Pos.CENTER_LEFT);
         this.root.setBottom(bottomPane);
+        this.root.getBottom().setStyle("-fx-padding: " + Dim.PAD_PLAYLIST_WINDOW.intVal() + ", 0, 0, 0;");
 
         //// PARSE STYLESHEET
         this.baseScene.getStylesheets().add(getClass().getResource("/mvc/view/stylesheets/styles.css").toExternalForm());
@@ -223,13 +223,10 @@ public class StartupView extends Application implements Observer {
                     if(newValue != null){
                         ANSI.YELLOW.println("NEW PLAYLIST " + newValue.getTitle());
                         playlistListView.getFocusModel().focus(playlistListView.getSelectionModel().getSelectedIndex());
-                        playlistListView.getSelectionModel().select(newValue);
-                        System.out.println(playlistListView.getSelectionModel().getSelectedItem().getPlaylist().getTitle());
                         updateSongTable(
                                 newValue.getPlaylist()
                         );
                         controller.setSelectedPlaylist(newValue.getPlaylist());
-
                         playlistListView.refresh();
                     }
                 }
@@ -243,27 +240,10 @@ public class StartupView extends Application implements Observer {
                         );
                         currentSongsTable.refresh();
 
-                        currentPlaylistTitle.set(
-                                controller.getSelectedPlaylist().getTitle()
-                        );
-                        currentSongTitle.set(
-                                controller.getCurrentSong().getTitle()
-                        );
-                        songLength.set(
-                                controller.getCurrentSong().getLengthMillis()
-                        );
-                        currentSongAlbum.set(
-                                controller.getCurrentSong().getAlbum()
-                        );
-                        currentSongArtist.set(
-                                controller.getCurrentSong().getArtist()
-                        );
-                        currentSongLength.set(
-                                controller.getCurrentSongLength().get()
-                        );
+                        updateCurrentProperties();
                     }
                     else {
-                        currentSongsTable.getFocusModel().focus(
+                        currentSongsTable.getSelectionModel().select(
                                 currentSongsTable.getSelectionModel().getFocusedIndex()
                         );
                     }
@@ -392,6 +372,7 @@ public class StartupView extends Application implements Observer {
         );
         this.playlistListView.getSelectionModel().select(0);
         this.updateSongTable(this.playlistListView.getSelectionModel().getSelectedItem().getPlaylist());
+        this.currentSongsTable.getSelectionModel().select(0);
     }
 
     private HBox setUpBottomPane(){
@@ -412,7 +393,10 @@ public class StartupView extends Application implements Observer {
         );
         ControlButton stop = new ControlButton("STOP");
         stop.addEventHandler(
-                ActionEvent.ANY, event -> controller.stop()
+                ActionEvent.ANY, event -> {
+                    controller.stop();
+                    currentSongsTable.scrollTo(0);
+                }
         );
         ControlButton next = new ControlButton("NEXT");
         next.addEventHandler(
@@ -422,11 +406,21 @@ public class StartupView extends Application implements Observer {
                             currentSongsTable.getItems().indexOf(controller.getCurrentSong())
                     );
                     currentSongsTable.scrollTo(controller.getCurrentSong());
+
+                    updateCurrentProperties();
                 }
         );
         ControlButton prev = new ControlButton("PREV");
         prev.addEventHandler(
-                ActionEvent.ANY, event -> controller.skip(Skip.PREVIOUS)
+                ActionEvent.ANY, event -> {
+                    controller.skip(Skip.PREVIOUS);
+                    currentSongsTable.getSelectionModel().select(
+                            currentSongsTable.getItems().indexOf(controller.getCurrentSong())
+                    );
+                    currentSongsTable.scrollTo(controller.getCurrentSong());
+
+                    updateCurrentProperties();
+                }
         );
         ControlButton mute = new ControlButton("MUTE");
         mute.addEventHandler(
@@ -459,11 +453,11 @@ public class StartupView extends Application implements Observer {
         Slider volume = new Slider();
         volume.setMinWidth(50);
         volume.maxWidth(50);
-        volume.setMin(0);
-        volume.setMax(100);
+        volume.setMin(Dim.VOL_MIN.intVal());
+        volume.setMax(Dim.VOL_MAX.intVal());
         volume.setMajorTickUnit(50);
         volume.setMinorTickCount(0);
-        volume.setShowTickMarks(true);
+        volume.setShowTickMarks(false);
         volume.setSnapToTicks(false);
         volume.valueProperty().bindBidirectional(
                 this.volumeValue
@@ -495,7 +489,7 @@ public class StartupView extends Application implements Observer {
         Slider posSlider = new Slider();
         posSlider.setId("posSlider");
         posSlider.minWidth(400);
-        posSlider.maxWidth(350);
+        posSlider.maxWidth(3050);
         posSlider.maxProperty().bind(
                 songLength
         );
@@ -505,6 +499,9 @@ public class StartupView extends Application implements Observer {
         posSlider.setStyle("-fx-background-color: transparent;");
         posSlider.maxWidth(Dim.W_MAX_SLIDER.intVal());
         HBox.setHgrow(posSlider, Priority.ALWAYS);
+
+        HBox volumeCtrl = new HBox(mute, volume);
+        volumeCtrl.setAlignment(Pos.CENTER);
 
         //// CURRENT SONG POSITION
         Label currPos = new Label(
@@ -525,7 +522,7 @@ public class StartupView extends Application implements Observer {
 
         ////// CURRENT SONG CONTAINER
         HBox currentSongCtrl = new HBox();
-        currentSongCtrl.setMaxWidth(Dim.W_ADDPLAYLIST_WINDOW.intVal());
+//        currentSongCtrl.setMaxWidth(Dim.W_ADDPLAYLIST_WINDOW.intVal());
         HBox.setHgrow(currentSongCtrl, Priority.ALWAYS);
         currentSongCtrl.getChildren().addAll(
                 currPos,
@@ -543,12 +540,16 @@ public class StartupView extends Application implements Observer {
         bottomPane.setPrefHeight(Dim.H_BORDERP_BOTTOM.intVal());
         bottomPane.setMaxHeight(Dim.H_BORDERP_BOTTOM.intVal());
         bottomPane.setMinHeight(Dim.H_BORDERP_BOTTOM.intVal());
+        bottomPane.setSpacing(Dim.H_BORDERP_BOTTOM.intVal());
+        bottomPane.setStyle("-fx-background-color: aqua;");
+        bottomPane.setPadding(
+                new Insets(Dim.PAD_SIDE_LIST.intVal(), 0, 0, 0)
+        );
         bottomPane.getChildren().addAll(
                 btnsContainer,
-                volume,
+                volumeCtrl,
                 currentSongContainer
         );
-        bottomPane.setFillHeight(true);
 
         HBox.setHgrow(bottomPane, Priority.ALWAYS);
 
@@ -582,39 +583,13 @@ public class StartupView extends Application implements Observer {
 
         this.currentCoverImg.setImage(controller.getCoverImg());
         this.currentCoverImg.setPreserveRatio(true);
-//        this.currentCoverImg.setViewport(
-//                new Rectangle2D(
-//                    0,
-//                    this.currentCoverImg.getBoundsInParent().getHeight() * 0.25,
-//                    this.currentCoverImg.getBoundsInParent().getWidth(),
-//                        this.baseScene.getHeight() * 0.4
-//                )
-//        );
-//        this.currentCoverImg.setViewport(
-//                new Rectangle2D(
-//                    0,
-//                    this.currentCoverImg.getBoundsInParent().getHeight() * 0.25,
-//                    this.currentCoverImg.getBoundsInParent().getWidth(),
-//                        this.baseScene.getHeight() * 0.4
-//                )
-//        );
-//        this.currentCoverImg.setFitWidth(
-//                Dim.MIN_W_SCREEN.intVal() - Dim.W_LEFT_PANEL.intVal()
-//        );
         this.currentCoverImg.setFitHeight(
                 Dim.MIN_H_SCREEN.intVal() - 300
-        );
-        this.currentCoverImg.resize(
-                100,
-                this.baseScene.getHeight() * 0.4
         );
         rightPanel.getChildren().add(this.currentCoverImg);
 
         HBox cover_bigElements = new HBox(currentCoverImg, anchorPane);
         cover_bigElements.setAlignment(Pos.BOTTOM_LEFT);
-//        cover_bigElements.setPadding(
-//                new Insets(Dim.PAD_SIDE_LIST.intVal())
-//        );
         cover_bigElements.setSpacing(Dim.PAD_SIDE_LIST.intVal());
         cover_bigElements.setFillHeight(true);
 
@@ -694,5 +669,26 @@ public class StartupView extends Application implements Observer {
             play_pauseStyle.set("play");
         }
      }
+
+    private void updateCurrentProperties(){
+        currentPlaylistTitle.set(
+                controller.getSelectedPlaylist().getTitle()
+        );
+        currentSongTitle.set(
+                controller.getCurrentSong().getTitle()
+        );
+        songLength.set(
+                controller.getCurrentSong().getLengthMillis()
+        );
+        currentSongAlbum.set(
+                controller.getCurrentSong().getAlbum()
+        );
+        currentSongArtist.set(
+                controller.getCurrentSong().getArtist()
+        );
+        currentSongLength.set(
+                controller.getCurrentSongLength().get()
+        );
+    }
 
 }
