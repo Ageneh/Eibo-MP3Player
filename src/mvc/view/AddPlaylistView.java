@@ -10,7 +10,6 @@ import javafx.scene.control.*;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -20,13 +19,18 @@ import misc.ANSI;
 import mvc.model.extension.enums.StandardValues;
 import mvc.model.extension.enums.Filetype;
 import mvc.model.playlist.DataFinder;
-import mvc.view.enums.Dim;
+import mvc.view.enums.Dimensions;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ *
+ * @author Michael Heide
+ * @author Henock Arega
+ */
 public class AddPlaylistView extends Application {
 
     /////////////////////// VARIABLES
@@ -75,7 +79,7 @@ public class AddPlaylistView extends Application {
         root = new VBox();
         root.setAlignment(Pos.TOP_CENTER);
         root.setPadding(
-                new Insets(Dim.PAD_SIDE_LIST.intVal())
+                new Insets(Dimensions.PAD_SIDE_LIST.intVal())
         );
         root.setFillWidth(true);
 
@@ -83,7 +87,7 @@ public class AddPlaylistView extends Application {
         top.setPadding(
                 new Insets(
                         0, 0,
-                        Dim.PAD_SIDE_LIST.intVal(),
+                        Dimensions.PAD_SIDE_LIST.intVal(),
                         0
                 )
         );
@@ -97,16 +101,16 @@ public class AddPlaylistView extends Application {
         root.getChildren().add(listView);
 
         this.supportedMessage = new Label(StandardValues.DRAG_MSG_STD.getString());
-        this.supportedMessage.setMaxWidth(Dim.W_ADDPLAYLIST_WINDOW.intVal() - 20);
+        this.supportedMessage.setMaxWidth(Dimensions.W_ADDPLAYLIST_WINDOW.intVal() - 20);
         this.supportedMessage.setTextAlignment(TextAlignment.CENTER);
         this.supportedMessage.setWrapText(true);
         this.supportedMessage.setMinHeight(70);
         this.supportedMessage.setTextAlignment(TextAlignment.CENTER);
         this.supportedMessage.setPadding(
                 new Insets(
-                        Dim.PAD_SIDE_LIST.intVal(),
+                        Dimensions.PAD_SIDE_LIST.intVal(),
                         0,
-                        Dim.PAD_SIDE_LIST.intVal(),
+                        Dimensions.PAD_SIDE_LIST.intVal(),
                         0
                 )
         );
@@ -139,8 +143,8 @@ public class AddPlaylistView extends Application {
         );
 
         primaryStage.setTitle("Add New Playlist");
-        primaryStage.setMinWidth(Dim.W_ADDPLAYLIST_WINDOW.doubleVal());
-        primaryStage.setMinHeight(Dim.H_ADDPLAYLIST_WINDOW.doubleVal());
+        primaryStage.setMinWidth(Dimensions.W_ADDPLAYLIST_WINDOW.doubleVal());
+        primaryStage.setMinHeight(Dimensions.H_ADDPLAYLIST_WINDOW.doubleVal());
         primaryStage.setOnCloseRequest(
                 event -> {
                     if(firstStart){
@@ -294,10 +298,10 @@ public class AddPlaylistView extends Application {
         this.cancel.setCancelButton(true);
 
         HBox load_cancel = new HBox(load, cancel);
-        load_cancel.setMinWidth(Dim.H_BORDERP_BOTTOM.intVal());
+        load_cancel.setMinWidth(Dimensions.H_BORDERP_BOTTOM.intVal());
         load_cancel.setAlignment(Pos.CENTER);
         load_cancel.setFillHeight(true);
-        load_cancel.setSpacing(Dim.PAD_PLAYLIST_WINDOW.intVal());
+        load_cancel.setSpacing(Dimensions.PAD_PLAYLIST_WINDOW.intVal());
 
         return load_cancel;
     }

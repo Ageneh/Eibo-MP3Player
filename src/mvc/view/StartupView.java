@@ -20,7 +20,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import misc.ANSI;
 import misc.TimeConverter;
 import mvc.controller.Controller;
 import mvc.model.extension.enums.Skip;
@@ -30,11 +29,16 @@ import mvc.view.custom_elements.ControlButton;
 import mvc.view.custom_elements.PlaylistSongCover;
 import mvc.view.custom_elements.PlaylistViewCell;
 import mvc.view.custom_elements.PlistListCell;
-import mvc.view.enums.Dim;
+import mvc.view.enums.Dimensions;
 
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ *
+ * @author Michael Heide
+ * @author Henock Arega
+ */
 public class StartupView extends Application implements Observer {
 
     /////////////////////// VARIABLES
@@ -79,6 +83,8 @@ public class StartupView extends Application implements Observer {
     private SimpleFloatProperty volumeValue;
     private SimpleDoubleProperty sceneOpacity;
 
+    private int selectedPlaylist;
+
 
 
     /////////////////////// CONSTRUCTOR
@@ -112,6 +118,7 @@ public class StartupView extends Application implements Observer {
                 controller.getCurrentSong().getLengthMillis()
         );
         play_pauseStyle = new SimpleStringProperty("play");
+        selectedPlaylist = 0;
     }
 
 
@@ -134,8 +141,8 @@ public class StartupView extends Application implements Observer {
         //// SETTING UP STAGE AND ROOT PANE
         this.baseScene = new Scene(
                 this.root,
-                Dim.MIN_W_SCREEN.intVal(),
-                Dim.MIN_H_SCREEN.intVal()
+                Dimensions.MIN_W_SCREEN.intVal(),
+                Dimensions.MIN_H_SCREEN.intVal()
         );
 
         ////// LEFT PANEL AND CONTROLS
@@ -150,15 +157,15 @@ public class StartupView extends Application implements Observer {
         this.bottomPane = setUpBottomPane();
         bottomPane.setAlignment(Pos.CENTER_LEFT);
         this.root.setBottom(bottomPane);
-        this.root.getBottom().setStyle("-fx-padding: " + Dim.PAD_PLAYLIST_WINDOW.intVal() + ", 0, 0, 0;");
+        this.root.getBottom().setStyle("-fx-padding: " + Dimensions.PAD_PLAYLIST_WINDOW.intVal() + ", 0, 0, 0;");
 
         //// PARSE STYLESHEET
         this.baseScene.getStylesheets().add(getClass().getResource("/mvc/view/stylesheets/styles.css").toExternalForm());
 
         primaryStage.setScene(this.baseScene);
         primaryStage.setTitle(this.stageTitle);
-        primaryStage.setMinHeight(Dim.MIN_H_SCREEN.intVal());
-        primaryStage.setMinWidth(Dim.MIN_W_SCREEN.intVal());
+        primaryStage.setMinHeight(Dimensions.MIN_H_SCREEN.intVal());
+        primaryStage.setMinWidth(Dimensions.MIN_W_SCREEN.intVal());
         primaryStage.setMaxWidth(Screen.getPrimary().getVisualBounds().getWidth());
         primaryStage.setMaxHeight(Screen.getPrimary().getVisualBounds().getHeight());
         primaryStage.setOnCloseRequest(
@@ -194,7 +201,7 @@ public class StartupView extends Application implements Observer {
                     );
                     currentSongsTable.setPrefHeight(
                             root.getHeight()
-                                    - Dim.H_BORDERP_BOTTOM.intVal()
+                                    - Dimensions.H_BORDERP_BOTTOM.intVal()
                                     - currentCoverImg.getBoundsInParent().getHeight()
                     );
                     bottomPane.resize(newValue.doubleValue(), baseScene.getHeight());
@@ -207,13 +214,13 @@ public class StartupView extends Application implements Observer {
                 (observable, oldValue, newValue) -> {
                     playlistListView.setPrefHeight(
                             root.getHeight()
-                                    - Dim.H_BORDERP_BOTTOM.intVal()
-                                    - Dim.H_LEFT_PANEL_HEADER.doubleVal()
+                                    - Dimensions.H_BORDERP_BOTTOM.intVal()
+                                    - Dimensions.H_LEFT_PANEL_HEADER.doubleVal()
                     );
 
                     currentSongsTable.setPrefHeight(
                             root.getHeight()
-                                    - Dim.H_BORDERP_BOTTOM.intVal()
+                                    - Dimensions.H_BORDERP_BOTTOM.intVal()
                                     - currentCoverImg.getBoundsInParent().getHeight()
                     );
                 }
@@ -221,8 +228,10 @@ public class StartupView extends Application implements Observer {
         playlistListView.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> {
                     if(newValue != null){
-                        ANSI.YELLOW.println("NEW PLAYLIST " + newValue.getTitle());
-                        playlistListView.getFocusModel().focus(playlistListView.getSelectionModel().getSelectedIndex());
+                        selectedPlaylist = playlistListView.getSelectionModel().getSelectedIndex();
+//                        playlistListView.getFocusModel().focus(playlistListView.getSelectionModel().getSelectedIndex());
+                        playlistListView.getFocusModel().focus(selectedPlaylist);
+                        playlistListView.getSelectionModel().select(selectedPlaylist);
                         updateSongTable(
                                 newValue.getPlaylist()
                         );
@@ -242,11 +251,9 @@ public class StartupView extends Application implements Observer {
 
                         updateCurrentProperties();
                     }
-                    else {
-                        currentSongsTable.getSelectionModel().select(
-                                currentSongsTable.getSelectionModel().getFocusedIndex()
-                        );
-                    }
+                    currentSongsTable.getSelectionModel().select(
+                            currentSongsTable.getSelectionModel().getSelectedIndex()
+                    );
                 }
         );
     }
@@ -264,10 +271,10 @@ public class StartupView extends Application implements Observer {
 
         AnchorPane headerRow1 = new AnchorPane(leftPanelHeaderLabel, playlistCount);
         headerRow1.setPadding(
-                new Insets(Dim.PAD_SIDE_LIST.intVal())
+                new Insets(Dimensions.PAD_SIDE_LIST.intVal())
         );
-        headerRow1.setMinHeight(Dim.H_LEFT_PANEL_HEADER.doubleVal());
-        headerRow1.maxHeight(Dim.H_LEFT_PANEL_HEADER.doubleVal());
+        headerRow1.setMinHeight(Dimensions.H_LEFT_PANEL_HEADER.doubleVal());
+        headerRow1.maxHeight(Dimensions.H_LEFT_PANEL_HEADER.doubleVal());
         headerRow1.setLeftAnchor(leftPanelHeaderLabel, 0.0);
         headerRow1.setTopAnchor(leftPanelHeaderLabel, 0.0);
         headerRow1.setRightAnchor(playlistCount, 0.0);
@@ -287,11 +294,11 @@ public class StartupView extends Application implements Observer {
         );
         addPlaylist.setOpacity(MIN_OPACITY);
         addPlaylist.setWrapText(false);
-        addPlaylist.setMinWidth(Dim.SIZE_CTRL_BTN.intVal());
+        addPlaylist.setMinWidth(Dimensions.SIZE_CTRL_BTN.intVal());
         StackPane addPlaylistBox = new StackPane(addPlaylist);
         addPlaylistBox.setMaxHeight(30);
         addPlaylistBox.setPadding(
-                new Insets(0, 0, Dim.PAD_SIDE_LIST.intVal(), 0)
+                new Insets(0, 0, Dimensions.PAD_SIDE_LIST.intVal(), 0)
         );
 
         VBox leftPanelHeader = new VBox();
@@ -305,7 +312,7 @@ public class StartupView extends Application implements Observer {
 
         this.playlistListView = new ListView<>();
         this.playlistListView.setEditable(false);
-        this.playlistListView.setFixedCellSize(Dim.H_LIST_CELL.intVal());
+        this.playlistListView.setFixedCellSize(Dimensions.H_LIST_CELL.intVal());
         this.playlistListView.setPadding(new Insets(0));
         VBox.setVgrow(playlistListView, Priority.ALWAYS);
 
@@ -339,7 +346,7 @@ public class StartupView extends Application implements Observer {
             cellBox.setId("cellbox");
             this.playlistListView.getItems().add(cellBox.getGrid());
         }
-        playlistListView.getSelectionModel().select(0);
+        playlistListView.getSelectionModel().select(selectedPlaylist);
         this.playlistListView.refresh();
     }
 
@@ -377,19 +384,19 @@ public class StartupView extends Application implements Observer {
                 album,
                 length
         );
-        this.playlistListView.getSelectionModel().select(0);
+        this.playlistListView.getSelectionModel().select(selectedPlaylist);
         this.updateSongTable(
                 this.playlistListView.getSelectionModel().getSelectedItem().getPlaylist()
         );
-        this.currentSongsTable.getSelectionModel().select(0);
+        this.currentSongsTable.getSelectionModel().select(selectedPlaylist);
     }
 
     private HBox setUpBottomPane(){
         HBox bottomPane = new HBox();
         bottomPane.setId("controlBtnPane");
         bottomPane.setAlignment(Pos.CENTER_LEFT);
-        bottomPane.setPrefHeight(Dim.H_BORDERP_BOTTOM.intVal());
-        bottomWidth = new SimpleDoubleProperty(Dim.MIN_W_SCREEN.intVal());
+        bottomPane.setPrefHeight(Dimensions.H_BORDERP_BOTTOM.intVal());
+        bottomWidth = new SimpleDoubleProperty(Dimensions.MIN_W_SCREEN.intVal());
 
         ControlButton play_pause = new ControlButton("PLAY");
         play_pause.addEventHandler(
@@ -447,7 +454,7 @@ public class StartupView extends Application implements Observer {
         );
 
         HBox btnsContainer = new HBox();
-        btnsContainer.setSpacing(Dim.PAD_SIDE_LIST.intVal());
+        btnsContainer.setSpacing(Dimensions.PAD_SIDE_LIST.intVal());
         btnsContainer.setFillHeight(true);
         btnsContainer.getChildren().addAll(
                 prev,
@@ -462,8 +469,8 @@ public class StartupView extends Application implements Observer {
         Slider volume = new Slider();
         volume.setMinWidth(50);
         volume.maxWidth(50);
-        volume.setMin(Dim.VOL_MIN.intVal());
-        volume.setMax(Dim.VOL_MAX.intVal());
+        volume.setMin(Dimensions.VOL_MIN.intVal());
+        volume.setMax(Dimensions.VOL_MAX.intVal());
         volume.setMajorTickUnit(50);
         volume.setMinorTickCount(0);
         volume.setShowTickMarks(false);
@@ -480,8 +487,8 @@ public class StartupView extends Application implements Observer {
 
         //// CURRENT SONG LENGTH
         Label songLen = new Label();
-        songLen.setMinWidth(Dim.W_SONGTITLE.intVal());
-        songLen.setMaxWidth(Dim.W_SONGTITLE.intVal());
+        songLen.setMinWidth(Dimensions.W_SONGTITLE.intVal());
+        songLen.setMaxWidth(Dimensions.W_SONGTITLE.intVal());
         this.currentSongLength = this.controller.getCurrentSongLength();
         songLen.textProperty().bindBidirectional(this.currentSongLength);
 
@@ -506,7 +513,7 @@ public class StartupView extends Application implements Observer {
                 currentPosPropVal
         );
         posSlider.setStyle("-fx-background-color: transparent;");
-        posSlider.maxWidth(Dim.W_MAX_SLIDER.intVal());
+        posSlider.maxWidth(Dimensions.W_MAX_SLIDER.intVal());
         HBox.setHgrow(posSlider, Priority.ALWAYS);
 
         HBox volumeCtrl = new HBox(mute, volume);
@@ -516,8 +523,8 @@ public class StartupView extends Application implements Observer {
         Label currPos = new Label(
                 TimeConverter.setTimeFormatStd(0)
         );
-        currPos.setMinWidth(Dim.W_SONGTITLE.intVal());
-        currPos.setMaxWidth(Dim.W_SONGTITLE.intVal());
+        currPos.setMinWidth(Dimensions.W_SONGTITLE.intVal());
+        currPos.setMaxWidth(Dimensions.W_SONGTITLE.intVal());
         this.currentPos = new SimpleStringProperty();
         currentPosPropVal.addListener(
                 (observable, oldValue, newValue) -> {
@@ -531,7 +538,7 @@ public class StartupView extends Application implements Observer {
 
         ////// CURRENT SONG CONTAINER
         HBox currentSongCtrl = new HBox();
-//        currentSongCtrl.setMaxWidth(Dim.W_ADDPLAYLIST_WINDOW.intVal());
+//        currentSongCtrl.setMaxWidth(Dimensions.W_ADDPLAYLIST_WINDOW.intVal());
         HBox.setHgrow(currentSongCtrl, Priority.ALWAYS);
         currentSongCtrl.getChildren().addAll(
                 currPos,
@@ -544,15 +551,15 @@ public class StartupView extends Application implements Observer {
 
         //// CONTAINER: CONTROL BUTTONS
         bottomPane.setSpacing(5);
-        bottomPane.setMinWidth(Dim.MIN_W_SCREEN.intVal());
+        bottomPane.setMinWidth(Dimensions.MIN_W_SCREEN.intVal());
         bottomPane.setMaxWidth(1500);
-        bottomPane.setPrefHeight(Dim.H_BORDERP_BOTTOM.intVal());
-        bottomPane.setMaxHeight(Dim.H_BORDERP_BOTTOM.intVal());
-        bottomPane.setMinHeight(Dim.H_BORDERP_BOTTOM.intVal());
-        bottomPane.setSpacing(Dim.H_BORDERP_BOTTOM.intVal());
+        bottomPane.setPrefHeight(Dimensions.H_BORDERP_BOTTOM.intVal());
+        bottomPane.setMaxHeight(Dimensions.H_BORDERP_BOTTOM.intVal());
+        bottomPane.setMinHeight(Dimensions.H_BORDERP_BOTTOM.intVal());
+        bottomPane.setSpacing(Dimensions.H_BORDERP_BOTTOM.intVal());
         bottomPane.setStyle("-fx-background-color: aqua;");
         bottomPane.setPadding(
-                new Insets(Dim.PAD_SIDE_LIST.intVal(), 0, 0, 0)
+                new Insets(Dimensions.PAD_SIDE_LIST.intVal(), 0, 0, 0)
         );
         bottomPane.getChildren().addAll(
                 btnsContainer,
@@ -595,13 +602,13 @@ public class StartupView extends Application implements Observer {
         this.currentCoverImg.setImage(controller.getCoverImg());
         this.currentCoverImg.setPreserveRatio(true);
         this.currentCoverImg.setFitHeight(
-                Dim.MIN_H_SCREEN.intVal() - 300
+                Dimensions.MIN_H_SCREEN.intVal() - 300
         );
         rightPanel.getChildren().add(this.currentCoverImg);
 
         HBox cover_bigElements = new HBox(currentCoverImg, anchorPane);
         cover_bigElements.setAlignment(Pos.BOTTOM_LEFT);
-        cover_bigElements.setSpacing(Dim.PAD_SIDE_LIST.intVal());
+        cover_bigElements.setSpacing(Dimensions.PAD_SIDE_LIST.intVal());
         cover_bigElements.setFillHeight(true);
 
         VBox verticalSeperator = new VBox();
@@ -612,9 +619,9 @@ public class StartupView extends Application implements Observer {
         verticalSeperator.getChildren().add(this.currentSongsTable);
         verticalSeperator.setPadding(
                 new Insets(
-                        Dim.PAD_SIDE_LIST.intVal(),
+                        Dimensions.PAD_SIDE_LIST.intVal(),
                         0, 0 ,
-                        Dim.PAD_SIDE_LIST.intVal()
+                        Dimensions.PAD_SIDE_LIST.intVal()
                 )
         );
 
@@ -642,8 +649,14 @@ public class StartupView extends Application implements Observer {
         this.allPlaylists.setAll(
                 controller.getAllPlaylists()
         );
-        this.setPlaylistViewCells();
         this.playlistListView.refresh();
+        playlistListView.getSelectionModel().select(
+                playlistListView.getFocusModel().getFocusedIndex()
+        );
+        playlistListView.getFocusModel().focus(
+                playlistListView.getFocusModel().getFocusedIndex()
+        );
+        this.setPlaylistViewCells();
     }
 
     /**

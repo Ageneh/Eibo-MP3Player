@@ -6,7 +6,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import mvc.model.playlist.Playlist;
-import mvc.view.enums.Dim;
+import mvc.view.enums.Dimensions;
 
 public class PlistListCell extends GridPane {
 
@@ -24,7 +24,7 @@ public class PlistListCell extends GridPane {
                 "    -fx-font-style: oblique;");
         this.coverSm = new ImageView(new Image("/mvc/view/stylesheets/icons/playlist.png"));
         this.coverSm.setPreserveRatio(true);
-        this.coverSm.setFitWidth(Dim.H_LIST_CELL.intVal() - 10);
+        this.coverSm.setFitWidth(Dimensions.H_LIST_CELL.intVal() - 10);
         this.coverSm.setSmooth(true);
         this.coverSm.setOpacity(0.5);
         this.songCountLabel = new Label();

@@ -1,5 +1,10 @@
 package exceptions;
 
+/**
+ *
+ * @author Michael Heide
+ * @author Henock Arega
+ */
 public class PlayerNotInstanciatedException extends Exception {
 
     public PlayerNotInstanciatedException(){

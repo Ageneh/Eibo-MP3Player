@@ -18,6 +18,9 @@ import java.util.Observable;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * @author Michael Heide
+ * @author Henock Arega
+ *
  * This class is used for the main model. It is used to create a mp3-player.
  * <br>Part of this class is a {@link PlayerThread private inner class}, which is curucial
  * for the continuing playback of a {@link Playlist}.</br>
@@ -211,6 +214,7 @@ public class MP3Player extends Observable {
                 if(stop){
                     load();
                     this.modelThreader.resume();
+                    modelThreader.go();
                 }
                 this.modelThreader.resume();
             }
@@ -403,9 +407,6 @@ public class MP3Player extends Observable {
      */
     public long getCurrentPosition(){
         try {
-//            if(stop){
-//                return 0;
-//            }
             return player.position();
         } catch (NullPointerException e) {
             return 0;
@@ -512,7 +513,7 @@ public class MP3Player extends Observable {
             long posMod;
             long last;
             long songPosition;
-            while(plistManager.setNextSong(Skip.NEXT.getSkipVal())){
+            do{
                 //// PLAY SONG AND NOTIFY OBSERVERS
                 if(skip){
                     if (pause){
@@ -527,11 +528,6 @@ public class MP3Player extends Observable {
                     waiter();
                     System.out.println("RESUME ST");
                 }
-//                else if(pause && stop){
-//                    reset();
-//                    waiter();
-//                    resume();
-//                }
                 else{
                     skipSong(Skip.NEXT);
                     resume();
@@ -564,7 +560,8 @@ public class MP3Player extends Observable {
                 if(!skip && !stop) {
                     skipSong(Skip.NEXT);
                 }
-            }
+                System.out.println("DONE DOEN DOEN");
+            }while(plistManager.setNextSong(Skip.NEXT.getSkipVal()));
         }
 
         /**

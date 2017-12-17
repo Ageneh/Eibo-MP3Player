@@ -11,6 +11,9 @@ import java.io.File;
 import java.util.concurrent.Executor;
 
 /**
+ * @author Michael Heide
+ * @author Henock Arega
+ *
  * This class starts the MP3.
  * The main of this class will create a new instance of itself.
  */

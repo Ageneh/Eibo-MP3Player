@@ -1,5 +1,10 @@
 package misc;
 
+/**
+ *
+ * @author Michael Heide
+ * @author Henock Arega
+ */
 public enum ANSI {
 
     BLUE("\033[34m"),

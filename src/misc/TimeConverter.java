@@ -4,7 +4,10 @@ import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 import java.util.concurrent.TimeUnit;
-
+/**
+ * @author Michael Heide
+ * @author Henock Arega
+ */
 public abstract class TimeConverter {
 
     public static String setTimeFormatStd(long milliseconds){

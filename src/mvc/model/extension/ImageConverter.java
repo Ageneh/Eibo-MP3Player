@@ -3,7 +3,7 @@ package mvc.model.extension;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import mvc.view.enums.Dim;
+import mvc.view.enums.Dimensions;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -14,7 +14,7 @@ public abstract class ImageConverter {
 
     //// IMAGE CONVERTER
     public static Image convertToJavaFXImage(byte[] raw) {
-        return convertToJavaFXImage(raw, Dim.W_COVER_IMG.intVal(), Dim.H_COVER_IMG.intVal());
+        return convertToJavaFXImage(raw, Dimensions.W_COVER_IMG.intVal(), Dimensions.H_COVER_IMG.intVal());
     }
 
     public static Image convertToJavaFXImage(byte[] raw, final int width, final int height) {

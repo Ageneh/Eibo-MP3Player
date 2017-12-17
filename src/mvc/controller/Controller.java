@@ -208,8 +208,8 @@ public class Controller extends Observable {
 
         @Override
         public void update(Observable o, Object arg) {
-            setChanged();
-            notifyChanges();
+            Controller.this.setChanged();
+            Controller.this.notifyChanges();
         }
     }
 
@@ -221,8 +221,6 @@ public class Controller extends Observable {
      * <br>Implements {@linkplain Observer}.</br>
      */
     private class DragAndDrogObserver implements Observer{
-
-
         @Override
         public void update(Observable o, Object arg) {
             if (smallWindow.hasSongs()) {

@@ -1,6 +1,11 @@
 package mvc.view.enums;
 
-public enum Dim {
+/**
+ *
+ * @author Michael Heide
+ * @author Henock Arega
+ */
+public enum Dimensions {
 
     MIN_W_SCREEN(900),
     MIN_H_SCREEN(675),
@@ -37,7 +42,7 @@ public enum Dim {
     private Number val;
 
 
-    Dim(Number val){
+    Dimensions(Number val){
         this.val = val;
     }
 
