@@ -1,4 +1,4 @@
-package mvc.view.elements;
+package mvc.view.custom_elements;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;

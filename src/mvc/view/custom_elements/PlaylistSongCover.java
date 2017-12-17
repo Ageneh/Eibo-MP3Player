@@ -1,9 +1,8 @@
-package mvc.view.elements;
+package mvc.view.custom_elements;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-import javax.swing.text.Element;
 import java.awt.image.BufferedImage;
 
 public class PlaylistSongCover extends ImageView {
